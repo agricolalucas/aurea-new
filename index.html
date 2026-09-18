@@ -13,7 +13,11 @@
     @media(max-width:680px){.app{display:block}.sidebar{display:none;position:fixed;z-index:10;width:260px}.sidebar.open{display:flex}.mobile-menu{display:block}.topbar{padding:0 16px}.title p,.search{display:none}.content{padding:20px 15px}.kpis,.docgrid,.stock-summary{grid-template-columns:1fr}.intro{align-items:start;gap:10px}.intro h2{font-size:24px}.shipment{grid-template-columns:1fr 1fr}.shipment>*:last-child{text-align:left!important}.form{grid-template-columns:1fr}.field.full{grid-column:auto}}
     .sequence-wrap{display:grid;grid-template-columns:300px 1fr;gap:18px}.process-summary{padding:18px;height:max-content;position:sticky;top:98px}.process-summary h3{margin:0}.file-list{display:grid;gap:8px;margin:14px 0}.file-item{border:1px solid var(--line);background:white;border-radius:10px;padding:11px;text-align:left;cursor:pointer;color:var(--ink)}.file-item.active{border-color:var(--gold);box-shadow:inset 3px 0 var(--gold);background:#fffaf0}.file-item b,.file-item small{display:block}.file-item small{color:var(--muted);margin-top:3px}.sequence{display:grid;gap:12px}.stage{padding:0;overflow:hidden}.stage-head{display:grid;grid-template-columns:38px 1fr auto;gap:12px;align-items:center;padding:16px 18px;background:#f8faf9;border-bottom:1px solid var(--line)}.stage-no{width:34px;height:34px;background:var(--navy);color:white;border-radius:10px;display:grid;place-items:center;font-weight:800}.stage-head h3{font-size:15px;margin:0}.stage-head p{font-size:12px;color:var(--muted);margin:3px 0 0}.stage-docs{padding:5px 18px}.sequence-doc{display:grid;grid-template-columns:28px 1.3fr .75fr .55fr 90px;gap:10px;align-items:center;padding:12px 0;border-bottom:1px solid #edf0f1;font-size:13px}.sequence-doc:last-child{border-bottom:0}.check{width:22px;height:22px;border-radius:7px;background:#eaf5f0;color:var(--green);display:grid;place-items:center;font-weight:900}.bank-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;padding:15px 0}.bank-field label{display:block;color:var(--muted);font-size:12px;margin-bottom:5px}.bank-field input{width:100%;border:1px solid var(--line);border-radius:8px;padding:9px}.fx-box{display:flex;justify-content:space-between;gap:15px;align-items:center;background:#edf4f4;border-radius:10px;padding:12px;margin-bottom:10px}.fx-rate b{font-size:18px}.fx-rate small{display:block;color:var(--muted)}.dialog.wide{width:min(980px,100%)}.form-section{grid-column:1/-1;font-weight:800;color:var(--navy);border-bottom:1px solid var(--line);padding:8px 0 4px}.upload-zone{grid-column:1/-1;border:1px dashed #9db3ba;border-radius:10px;padding:14px;background:#f8faf9}.doc-actions{display:flex;gap:7px;justify-content:flex-end}.role{display:inline-flex;padding:5px 9px;border-radius:99px;font-size:12px;font-weight:700;background:#edf4f4;color:var(--navy)}.lookup{display:flex;gap:7px}.lookup input{flex:1}.lookup button{width:44px}.profile-kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:17px}@media(max-width:1100px){.bank-grid{grid-template-columns:repeat(2,1fr)}}@media(max-width:900px){.sequence-wrap{grid-template-columns:1fr}.process-summary{position:static}.sequence-doc{grid-template-columns:28px 1fr auto}.sequence-doc span:nth-child(3),.sequence-doc span:nth-child(4){display:none}.profile-kpis{grid-template-columns:repeat(2,1fr)}}@media(max-width:680px){.fx-box{align-items:flex-start;flex-direction:column}.bank-grid,.profile-kpis{grid-template-columns:1fr}}
   
-    .auth-gate{position:fixed;inset:0;background:linear-gradient(135deg,#082937,#0c3b4b);z-index:9999;display:grid;place-items:center;padding:20px}.auth-gate.hidden{display:none}.auth-card{width:min(430px,100%);background:#fff;border-radius:18px;padding:30px;box-shadow:0 25px 70px rgba(0,0,0,.25)}.auth-card h2{font-family:Georgia,serif;margin:8px 0}.auth-card p{color:var(--muted);font-size:14px}.auth-card input{width:100%;border:1px solid var(--line);border-radius:10px;padding:12px;margin:6px 0 12px;font:inherit}.auth-error{color:var(--red);font-size:13px;min-height:20px}.session-chip{font-size:12px;color:var(--muted)}
+    .auth-gate{position:fixed;inset:0;background:linear-gradient(135deg,#082937,#0c3b4b);z-index:9999;display:grid;place-items:center;padding:20px}.auth-gate.hidden{display:none}.auth-card{width:min(430px,100%);background:#fff;border-radius:18px;padding:30px;box-shadow:0 25px 70px rgba(0,0,0,.25)}.auth-card h2{font-family:Georgia,serif;margin:8px 0}.auth-card p{color:var(--muted);font-size:14px}.auth-card input{width:100%;border:1px solid var(--line);border-radius:10px;padding:12px;margin:6px 0 12px;font:inherit}.auth-error{color:var(--red);font-size:13px;min-height:20px}
+.auth-card.hidden{display:none}
+.auth-link{display:block;margin-top:14px;text-align:center;background:none;border:0;color:var(--blue);font:inherit;font-size:14px;cursor:pointer;text-decoration:underline}
+.auth-success{color:var(--green);font-size:13px;min-height:20px}
+.session-chip{font-size:12px;color:var(--muted)}
 </style>
 </head>
 <body>
@@ -29,6 +33,20 @@
       <input id="loginPassword" type="password" required autocomplete="current-password" placeholder="Password">
       <div class="auth-error" id="authError"></div>
       <button class="primary" style="width:100%" type="submit">Sign in</button>
+      <button class="auth-link" id="forgotPasswordBtn" type="button">Forgot password?</button>
+    </form>
+  </div>
+  <div class="auth-card hidden" id="forgotCard">
+    <div class="mark">A</div>
+    <h2>Forgot Password</h2>
+    <p>Enter your AES-TEST account email. We will send you a secure password recovery link.</p>
+    <form id="forgotForm">
+      <label>Email</label>
+      <input id="forgotEmail" type="email" required autocomplete="email" placeholder="email@company.com">
+      <div class="auth-error" id="forgotError"></div>
+      <div class="auth-success" id="forgotSuccess"></div>
+      <button class="primary" style="width:100%" type="submit">Send recovery link</button>
+      <button class="auth-link backToLogin" type="button">Back to sign in</button>
     </form>
   </div>
   <div class="auth-card hidden" id="recoveryCard">
@@ -42,6 +60,7 @@
       <input id="confirmPassword" type="password" required minlength="8" autocomplete="new-password" placeholder="Repeat new password">
       <div class="auth-error" id="recoveryError"></div>
       <button class="primary" style="width:100%" type="submit">Save new password</button>
+      <button class="auth-link backToLogin" type="button">Back to sign in</button>
     </form>
   </div>
 </div>
@@ -184,6 +203,11 @@
   const authError = document.getElementById('authError');
   const loginCard = document.getElementById('loginCard');
   const recoveryCard = document.getElementById('recoveryCard');
+  const forgotCard = document.getElementById('forgotCard');
+  const forgotForm = document.getElementById('forgotForm');
+  const forgotError = document.getElementById('forgotError');
+  const forgotSuccess = document.getElementById('forgotSuccess');
+  const forgotPasswordBtn = document.getElementById('forgotPasswordBtn');
   const recoveryForm = document.getElementById('recoveryForm');
   const recoveryError = document.getElementById('recoveryError');
   const logoutBtn = document.getElementById('logoutBtn');
@@ -208,7 +232,7 @@
   }
 
   async function applySession(session){
-    if(!session){gate.classList.remove('hidden');logoutBtn.style.display='none';sessionUser.textContent='';return;}
+    if(!session){gate.classList.remove('hidden');loginCard.classList.remove('hidden');forgotCard.classList.add('hidden');recoveryCard.classList.add('hidden');logoutBtn.style.display='none';sessionUser.textContent='';return;}
     gate.classList.add('hidden');logoutBtn.style.display='inline-block';sessionUser.textContent=session.user.email||'';await loadShipments();
   }
 
@@ -236,11 +260,48 @@
     if(e.target.closest('.details')) notify('Shipment details opened for review');
   });
 
+  function showLogin(){
+    forgotCard.classList.add('hidden');
+    recoveryCard.classList.add('hidden');
+    loginCard.classList.remove('hidden');
+    gate.classList.remove('hidden');
+  }
+
+  function showForgot(){
+    loginCard.classList.add('hidden');
+    recoveryCard.classList.add('hidden');
+    forgotCard.classList.remove('hidden');
+    forgotError.textContent = '';
+    forgotSuccess.textContent = '';
+    document.getElementById('forgotEmail').value = document.getElementById('loginEmail').value.trim();
+    gate.classList.remove('hidden');
+  }
+
   function showRecovery(){
     loginCard.classList.add('hidden');
+    forgotCard.classList.add('hidden');
     recoveryCard.classList.remove('hidden');
     gate.classList.remove('hidden');
   }
+
+  forgotPasswordBtn.addEventListener('click', showForgot);
+  document.querySelectorAll('.backToLogin').forEach(btn => btn.addEventListener('click', showLogin));
+
+  forgotForm.addEventListener('submit', async e => {
+    e.preventDefault();
+    forgotError.textContent = '';
+    forgotSuccess.textContent = '';
+    const email = document.getElementById('forgotEmail').value.trim();
+    const redirectTo = location.origin + location.pathname;
+    const { error } = await db.auth.resetPasswordForEmail(email, { redirectTo });
+    if (error) {
+      forgotError.textContent = /rate limit/i.test(error.message)
+        ? 'Email sending limit reached. Please wait and try again later.'
+        : error.message;
+      return;
+    }
+    forgotSuccess.textContent = 'Recovery link sent. Check your email.';
+  });
 
   recoveryForm.addEventListener('submit', async e => {
     e.preventDefault();
