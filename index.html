@@ -17,7 +17,34 @@
 </style>
 </head>
 <body>
-<div class="auth-gate" id="authGate"><div class="auth-card"><div class="mark">A</div><h2>Aurea Egypt</h2><p>Sign in to AES-TEST to access Shipments and Cargo.</p><form id="loginForm"><label>Email</label><input id="loginEmail" type="email" required autocomplete="username" placeholder="email@company.com"><label>Password</label><input id="loginPassword" type="password" required autocomplete="current-password" placeholder="Password"><div class="auth-error" id="authError"></div><button class="primary" style="width:100%" type="submit">Sign in</button></form></div></div>
+<div class="auth-gate" id="authGate">
+  <div class="auth-card" id="loginCard">
+    <div class="mark">A</div>
+    <h2>Aurea Egypt</h2>
+    <p>Sign in to AES-TEST to access Shipments and Cargo.</p>
+    <form id="loginForm">
+      <label>Email</label>
+      <input id="loginEmail" type="email" required autocomplete="username" placeholder="email@company.com">
+      <label>Password</label>
+      <input id="loginPassword" type="password" required autocomplete="current-password" placeholder="Password">
+      <div class="auth-error" id="authError"></div>
+      <button class="primary" style="width:100%" type="submit">Sign in</button>
+    </form>
+  </div>
+  <div class="auth-card hidden" id="recoveryCard">
+    <div class="mark">A</div>
+    <h2>Define New Password</h2>
+    <p>Create a new password for your AES-TEST account.</p>
+    <form id="recoveryForm">
+      <label>New password</label>
+      <input id="newPassword" type="password" required minlength="8" autocomplete="new-password" placeholder="Minimum 8 characters">
+      <label>Confirm new password</label>
+      <input id="confirmPassword" type="password" required minlength="8" autocomplete="new-password" placeholder="Repeat new password">
+      <div class="auth-error" id="recoveryError"></div>
+      <button class="primary" style="width:100%" type="submit">Save new password</button>
+    </form>
+  </div>
+</div>
 
 <div class="app">
   <aside class="sidebar" id="sidebar">
@@ -155,6 +182,10 @@
   const gate = document.getElementById('authGate');
   const loginForm = document.getElementById('loginForm');
   const authError = document.getElementById('authError');
+  const loginCard = document.getElementById('loginCard');
+  const recoveryCard = document.getElementById('recoveryCard');
+  const recoveryForm = document.getElementById('recoveryForm');
+  const recoveryError = document.getElementById('recoveryError');
   const logoutBtn = document.getElementById('logoutBtn');
   const sessionUser = document.getElementById('sessionUser');
   const tbody = document.querySelector('#cargoTable tbody');
@@ -205,8 +236,42 @@
     if(e.target.closest('.details')) notify('Shipment details opened for review');
   });
 
+  function showRecovery(){
+    loginCard.classList.add('hidden');
+    recoveryCard.classList.remove('hidden');
+    gate.classList.remove('hidden');
+  }
+
+  recoveryForm.addEventListener('submit', async e => {
+    e.preventDefault();
+    recoveryError.textContent = '';
+    const p1 = document.getElementById('newPassword').value;
+    const p2 = document.getElementById('confirmPassword').value;
+    if (p1.length < 8) { recoveryError.textContent = 'Password must contain at least 8 characters.'; return; }
+    if (p1 !== p2) { recoveryError.textContent = 'Passwords do not match.'; return; }
+    recoveryError.textContent = 'Saving new password…';
+    const { error } = await db.auth.updateUser({ password: p1 });
+    if (error) { recoveryError.textContent = error.message; return; }
+    await db.auth.signOut();
+    history.replaceState({}, document.title, location.pathname);
+    recoveryCard.classList.add('hidden');
+    loginCard.classList.remove('hidden');
+    gate.classList.remove('hidden');
+    authError.textContent = 'Password updated. Sign in with your new password.';
+    recoveryForm.reset();
+  });
+
+  const hash = new URLSearchParams(location.hash.replace(/^#/, ''));
+  if (hash.get('error_code')) {
+    authError.textContent = hash.get('error_description') || 'Recovery link is invalid or has expired. Request a new password recovery email.';
+    history.replaceState({}, document.title, location.pathname);
+  }
+
   db.auth.getSession().then(({data})=>applySession(data.session));
-  db.auth.onAuthStateChange((_event,session)=>{ if(!session) applySession(null); });
+  db.auth.onAuthStateChange((event,session)=>{
+    if(event === 'PASSWORD_RECOVERY') { showRecovery(); return; }
+    if(!session) applySession(null);
+  });
 })();
 </script>
 </body></html>`);w.document.close();toggleModal(draftModal,false);setTimeout(()=>w.print(),400)};
