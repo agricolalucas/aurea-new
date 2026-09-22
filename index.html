@@ -239,10 +239,9 @@
         <div class="intro"><div><h2>Import Operations Control</h2><p>Monitor current import operations, arrivals and available inventory.</p></div><span class="date-chip">15 setembro 2026 · Cairo</span></div>
         <div class="kpis">
           <div class="card kpi"><div class="kpi-head"><span>Shipments in Transit</span><span class="iconbox">▣</span></div><b id="dashboardTransitCount">0</b><span class="trend" id="dashboardTransitTrend">Based on shipments with future ETA</span></div>
-          <div class="card kpi"><div class="kpi-head"><span>ACID pendente</span><span class="iconbox">#</span></div><b>2</b><span class="trend warn">Requer atenção antes do embarque</span></div>
+          <div class="card kpi"><div class="kpi-head"><span>Shipment Status</span><span class="iconbox">#</span></div><div id="dashboardShipmentStatus" style="font-weight:800;font-size:15px;line-height:1.55">No shipments</div><span class="trend">Current shipment status</span></div>
           <div class="card kpi"><div class="kpi-head"><span>Available Inventory</span><span class="iconbox">◫</span></div><b id="dashboardAvailableInventory">0 kg</b><span class="trend">Sum of Available in Inventory Control</span></div>
-          <div class="card kpi"><div class="kpi-head"><span>Vendas no mês</span><span class="iconbox">◇</span></div><b>EGP 4,8M</b><span class="trend">+12% versus agosto</span></div>
-        </div>
+          
         <div class="dashboard-grid">
           <div class="card panel"><div class="panel-head"><h3>Upcoming Arrivals</h3><button class="linkbtn" data-go="cargas">View all</button></div><div id="dashboardUpcomingArrivals">
             <div class="shipment"><div class="ref"><strong>AEG-2026-041</strong><small>MSC LUCIA · Damietta</small></div><div><small class="muted">ETA</small><br><b>18 set 2026</b></div><div><span class="status amber">Documentos 75%</span><div class="progress"><i style="width:75%"></i></div></div><div style="text-align:right"><b>120 t</b><br><small class="muted">Gergelim</small></div></div>
@@ -504,7 +503,7 @@
   <button type="button" class="mini-btn profile-subtab" data-profile-tab="bank">Bank</button>
 </div>
 <div id="profileUsersTab">
-<div class="profile-kpis"><div class="card kpi"><div class="kpi-head"><span>Total profiles</span></div><b id="profileCount">7</b></div><div class="card kpi"><div class="kpi-head"><span>Importers</span></div><b>2</b></div><div class="card kpi"><div class="kpi-head"><span>Buyers / Consignees</span></div><b>3</b></div><div class="card kpi"><div class="kpi-head"><span>Service providers</span></div><b>2</b></div></div><div class="toolbar"><input id="profileSearch" placeholder="Search company, country, Tax ID or contact"><select id="profileTypeFilter"><option value="">All profile types</option><option>Administrator</option><option>Exporter</option><option>Importer</option><option>Notify</option><option>Consignee</option><option>Port / Terminal / Location</option><option>Fumigation Company</option></select></div><div class="card table-card"><table class="data-table" id="profileTable"><thead><tr><th>Company / Location</th><th>Profile</th><th>Country</th><th>Contact</th><th>Email / Phone</th><th>Tax ID / Registration</th><th>Status</th><th>Action</th></tr></thead><tbody><tr><td><b>Al Amir Group</b><br><span class="muted">Cairo</span></td><td><span class="role">Importer</span></td><td>Egypt</td><td>Ahmed Hassan</td><td>purchasing@alamir.eg<br><span class="muted">+20 2 0000 1001</span></td><td>EG-758825765</td><td><span class="status">Active</span></td><td><button class="mini-btn">Open</button></td></tr><tr><td><b>El Saada Confectionery</b><br><span class="muted">Sadat City</span></td><td><span class="role">Buyer</span></td><td>Egypt</td><td>Mariam Adel</td><td>trade@elsaada.eg<br><span class="muted">+20 48 000 2002</span></td><td>EG-50120498</td><td><span class="status">Active</span></td><td><button class="mini-btn">Open</button></td></tr><tr><td><b>Aurea Logística & Export</b><br><span class="muted">Lucas do Rio Verde</span></td><td><span class="role">Exporter</span></td><td>Brazil</td><td>Paula Gobbi</td><td>export@aurea.com.br<br><span class="muted">+55 65 0000 3003</span></td><td>BR-CNPJ</td><td><span class="status">Active</span></td><td><button class="mini-btn">Open</button></td></tr><tr><td><b>Damietta Port Terminal</b><br><span class="muted">Damietta Port</span></td><td><span class="role">Port / Terminal / Location</span></td><td>Egypt</td><td>Operations Desk</td><td>operations@terminal.eg<br><span class="muted">+20 57 000 4004</span></td><td>PORT-DAM-01</td><td><span class="status">Active</span></td><td><button class="mini-btn">Open</button></td></tr><tr><td><b>Nile Fumigation Services</b><br><span class="muted">Cairo</span></td><td><span class="role">Fumigation Company</span></td><td>Egypt</td><td>Omar Said</td><td>service@nilefumigation.eg<br><span class="muted">+20 10 0000 5005</span></td><td>EG-FUM-8042</td><td><span class="status">Active</span></td><td><button class="mini-btn">Open</button></td></tr></tbody></table></div>
+<div class="profile-kpis"><div class="card kpi"><div class="kpi-head"><span>Total profiles</span></div><b id="profileCount">7</b></div><div class="card kpi"><div class="kpi-head"><span>Importers</span></div><b>2</b></div><div class="card kpi"><div class="kpi-head"><span>Buyers / Consignees</span></div><b>3</b></div><div class="card kpi"><div class="kpi-head"><span>Service providers</span></div><b>2</b></div></div><div class="toolbar"><input id="profileSearch" placeholder="Search company, country, Tax ID or contact"><select id="profileTypeFilter"><option value="">All profile types</option><option>Administrator</option><option>Exporter</option><option>Importer</option><option>Notify</option><option>Consignee</option><option>Port / Terminal / Location</option><option>Fumigation Company</option></select></div><div class="card table-card"><table class="data-table" id="profileTable"><thead><tr><th>Company / Location</th><th>Profile</th><th>Country</th><th>Contact</th><th>Email / Phone</th><th>Tax ID / Registration</th><th>Status</th><th>Action</th></tr></thead><tbody><tr><td><b>Al Amir Group</b><br><span class="muted">Cairo</span></td><td><span class="role">Importer</span></td><td>Egypt</td><td>Ahmed Hassan</td><td>purchasing@alamir.eg<br><span class="muted">+20 2 0000 1001</span></td><td>EG-758825765</td><td><span class="status">Active</span></td><td><button type="button" class="mini-btn profile-edit">Edit</button> <button type="button" class="mini-btn profile-delete">Delete</button></td></tr><tr><td><b>El Saada Confectionery</b><br><span class="muted">Sadat City</span></td><td><span class="role">Buyer</span></td><td>Egypt</td><td>Mariam Adel</td><td>trade@elsaada.eg<br><span class="muted">+20 48 000 2002</span></td><td>EG-50120498</td><td><span class="status">Active</span></td><td><button type="button" class="mini-btn profile-edit">Edit</button> <button type="button" class="mini-btn profile-delete">Delete</button></td></tr><tr><td><b>Aurea Logística & Export</b><br><span class="muted">Lucas do Rio Verde</span></td><td><span class="role">Exporter</span></td><td>Brazil</td><td>Paula Gobbi</td><td>export@aurea.com.br<br><span class="muted">+55 65 0000 3003</span></td><td>BR-CNPJ</td><td><span class="status">Active</span></td><td><button type="button" class="mini-btn profile-edit">Edit</button> <button type="button" class="mini-btn profile-delete">Delete</button></td></tr><tr><td><b>Damietta Port Terminal</b><br><span class="muted">Damietta Port</span></td><td><span class="role">Port / Terminal / Location</span></td><td>Egypt</td><td>Operations Desk</td><td>operations@terminal.eg<br><span class="muted">+20 57 000 4004</span></td><td>PORT-DAM-01</td><td><span class="status">Active</span></td><td><button type="button" class="mini-btn profile-edit">Edit</button> <button type="button" class="mini-btn profile-delete">Delete</button></td></tr><tr><td><b>Nile Fumigation Services</b><br><span class="muted">Cairo</span></td><td><span class="role">Fumigation Company</span></td><td>Egypt</td><td>Omar Said</td><td>service@nilefumigation.eg<br><span class="muted">+20 10 0000 5005</span></td><td>EG-FUM-8042</td><td><span class="status">Active</span></td><td><button type="button" class="mini-btn profile-edit">Edit</button> <button type="button" class="mini-btn profile-delete">Delete</button></td></tr></tbody></table></div>
 </div>
 <div id="profileBankTab" style="display:none">
   <div class="intro" style="margin-top:4px">
@@ -533,7 +532,7 @@
 </div>
 
 <div class="modal" id="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle"><div class="dialog"><div class="dialog-head"><div><h3 id="modalTitle">Registrar nova carga</h3><span class="muted">Dados principais do processo de importação</span></div><button class="close" aria-label="Fechar">×</button></div><form id="cargoForm"><div class="form">
-  <div class="shipment-row three"><div class="field"><label>Reference</label><input name="reference" required value="AEG-2026-047"></div><div class="field"><label>Exporter</label><select name="exporter" id="shipmentExporter"><option value="">Select Company / Location...</option></select></div><div class="field"><label>Importer</label><select name="importer" id="shipmentImporter"><option value="">Select Company / Location...</option></select></div></div>
+  <div class="shipment-row three"><div class="field"><label>Reference</label><input name="reference" required value="AEG-2026-047"></div><div class="field"><label>Exporter</label><div style="display:flex;gap:7px"><select name="exporter" id="shipmentExporter" style="flex:1"><option value="">Select Company / Location...</option></select><button type="button" class="mini-btn shipment-add-exporter-user">+ User</button></div></div><div class="field"><label>Importer</label><div style="display:flex;gap:7px"><select name="importer" id="shipmentImporter" style="flex:1"><option value="">Select Company / Location...</option></select><button type="button" class="mini-btn shipment-add-importer-user">+ User</button></div></div></div>
   <div class="shipment-row two"><div class="field"><label>ACID Number</label><input name="acid_number" pattern="[0-9]{10,}" placeholder="ACID Number"></div><div class="field"><label>ACID Expiry</label><input name="acid_expiry" type="date"></div></div>
   <div class="shipment-row two"><div class="field"><label>Bill of Lading</label><input name="bill_of_lading" placeholder="B/L Number"></div><div class="field"><label>Vessel</label><input name="vessel" placeholder="Vessel name"></div></div>
   <div class="shipment-row three"><div class="field"><label>Origin Port</label><input name="origin_port" placeholder="Port of loading / origin"></div><div class="field"><label>Arrival Port</label><select name="arrival_port"><option>Damietta</option><option>Alexandria</option><option>Port Said</option></select></div><div class="field"><label>ETA</label><input name="eta" type="date"></div></div>
@@ -568,7 +567,7 @@
   </div>
 </div>
 <div class="modal" id="paymentModal" role="dialog" aria-modal="true"><div class="dialog"><div class="dialog-head"><div><h3>Record Payment</h3><span class="muted" id="paymentInvoiceLabel">Sales invoice</span></div><button class="close paymentClose" aria-label="Close">×</button></div><form id="paymentForm"><div class="form"><input type="hidden" name="invoice"><div class="field"><label>Payment date</label><input name="paymentDate" type="date" required></div><div class="field"><label>Payment amount (EGP)</label><input name="paymentAmount" type="number" min="0.01" step="0.01" required></div><div class="field full"><label>Payment bank</label><input name="paymentBank" required placeholder="Enter bank name"></div><div class="field full"><label>Current balance</label><input id="paymentBalance" readonly></div></div><div class="dialog-foot"><button type="button" class="secondary paymentCancel">Cancel</button><button type="submit" class="primary">Save Payment</button></div></form></div></div>
-<div class="modal" id="profileModal" role="dialog" aria-modal="true"><div class="dialog wide"><div class="dialog-head"><div><h3>New User / Profile</h3><span class="muted">Create a reusable company, location or operational contact</span></div><button class="close profileClose" aria-label="Close">×</button></div><form id="profileForm"><div class="form"><div class="field"><label>Profile type</label><select name="type" required><option>Administrator</option><option>Exporter</option><option>Importer</option><option>Notify</option><option>Consignee</option><option>Port / Terminal / Location</option><option>Fumigation Company</option></select></div><div class="field"><label>Status</label><select name="status"><option>Active</option><option>Inactive</option></select></div><div class="field"><label>Company / Location name</label><input name="company" required></div><div class="field"><label>Country</label><input name="country" required></div><div class="field full"><label>Address</label><input name="address" required></div><div class="field"><label>Email</label><input name="email" type="email"></div><div class="field"><label>Phone</label><input name="phone"></div><div class="field"><label>Tax ID / Registration</label><input name="taxId"></div><div class="field"><label>Contact name</label><input name="contact"></div></div><div class="dialog-foot"><button type="button" class="secondary profileCancel">Cancel</button><button type="submit" class="primary">Create Profile</button></div></form></div></div>
+<div class="modal" id="profileModal" role="dialog" aria-modal="true"><div class="dialog wide"><div class="dialog-head"><div><h3>New User / Profile</h3><span class="muted">Create a reusable company, location or operational contact</span></div><button class="close profileClose" aria-label="Close">×</button></div><form id="profileForm"><input type="hidden" name="edit_company" value=""><div class="form"><div class="field"><label>Profile type</label><select name="type" required><option>Administrator</option><option>Exporter</option><option>Importer</option><option>Notify</option><option>Consignee</option><option>Port / Terminal / Location</option><option>Fumigation Company</option></select></div><div class="field"><label>Status</label><select name="status"><option>Active</option><option>Inactive</option></select></div><div class="field"><label>Company / Location name</label><input name="company" required></div><div class="field"><label>Country</label><input name="country" required></div><div class="field full"><label>Address</label><input name="address" required></div><div class="field"><label>Email</label><input name="email" type="email"></div><div class="field"><label>Phone</label><input name="phone"></div><div class="field"><label>Tax ID / Registration</label><input name="taxId"></div><div class="field"><label>Contact name</label><input name="contact"></div></div><div class="dialog-foot"><button type="button" class="secondary profileCancel">Cancel</button><button type="submit" class="primary">Create Profile</button></div></form></div></div>
 <div class="toast" id="toast">Registro salvo com sucesso.</div>
 
 
@@ -1179,7 +1178,7 @@ document.getElementById('editSaleAddBuyer')?.addEventListener('click',addBuyerFr
   };
   const salesBuyerFilter=document.getElementById('salesBuyerFilter'),salesProductFilter=document.getElementById('salesProductFilter');function filterSales(){const buyer=salesBuyerFilter.value.toLowerCase(),product=salesProductFilter.value.toLowerCase();document.querySelectorAll('#salesTable tbody tr').forEach(row=>row.style.display=(!buyer||row.dataset.buyer.toLowerCase().includes(buyer))&&(!product||row.dataset.product.toLowerCase().includes(product))?'':'none')}salesBuyerFilter.oninput=filterSales;salesProductFilter.oninput=filterSales;
   stockRows().forEach(row=>{const saved=localStorage.getItem(`stock:${row.dataset.stockLot}`);if(saved!==null){row.dataset.available=saved;row.querySelector('.available-value').textContent=`${Number(saved).toLocaleString('en-US')} kg`}});
-  document.querySelectorAll('.role').forEach(x=>{if(x.textContent==='Buyer')x.textContent='Consignee'});document.getElementById('profileCount').textContent=document.querySelectorAll('#profileTable tbody tr').length;document.getElementById('newProfileBtn').onclick=()=>toggleModal(profileModal,true);document.querySelector('.profileClose').onclick=document.querySelector('.profileCancel').onclick=()=>toggleModal(profileModal,false);document.getElementById('profileForm').onsubmit=e=>{e.preventDefault();const d=Object.fromEntries(new FormData(e.target));const tr=document.createElement('tr');tr.innerHTML=`<td><b>${d.company}</b><br><span class="muted">${d.address}</span></td><td><span class="role">${d.type}</span></td><td>${d.country}</td><td>${d.contact||'—'}</td><td>${d.email||'—'}<br><span class="muted">${d.phone||''}</span></td><td>${d.taxId||'—'}</td><td><span class="status">${d.status}</span></td><td><button class="mini-btn">Open</button></td>`;document.querySelector('#profileTable tbody').prepend(tr);document.getElementById('profileCount').textContent=document.querySelectorAll('#profileTable tbody tr').length;const opt=document.createElement('option');opt.value=d.company;document.getElementById('buyerList').appendChild(opt);localStorage.setItem(`profile:${d.company}`,JSON.stringify(d));
+  document.querySelectorAll('.role').forEach(x=>{if(x.textContent==='Buyer')x.textContent='Consignee'});document.getElementById('profileCount').textContent=document.querySelectorAll('#profileTable tbody tr').length;document.getElementById('newProfileBtn').onclick=()=>toggleModal(profileModal,true);document.querySelector('.profileClose').onclick=document.querySelector('.profileCancel').onclick=()=>toggleModal(profileModal,false);document.getElementById('profileForm').onsubmit=e=>{e.preventDefault();const d=Object.fromEntries(new FormData(e.target));const tr=document.createElement('tr');tr.innerHTML=`<td><b>${d.company}</b><br><span class="muted">${d.address}</span></td><td><span class="role">${d.type}</span></td><td>${d.country}</td><td>${d.contact||'—'}</td><td>${d.email||'—'}<br><span class="muted">${d.phone||''}</span></td><td>${d.taxId||'—'}</td><td><span class="status">${d.status}</span></td><td><button type="button" class="mini-btn profile-edit">Edit</button> <button type="button" class="mini-btn profile-delete">Delete</button></td>`;document.querySelector('#profileTable tbody').prepend(tr);document.getElementById('profileCount').textContent=document.querySelectorAll('#profileTable tbody tr').length;const opt=document.createElement('option');opt.value=d.company;document.getElementById('buyerList').appendChild(opt);localStorage.setItem(`profile:${d.company}`,JSON.stringify(d));
   fillBuyerSelect(document.getElementById('buyerSearch'));fillBuyerSelect(document.getElementById('editSaleBuyer'));toggleModal(profileModal,false);notify(`${d.company} profile created`);e.target.reset()};
   const profileSearch=document.getElementById('profileSearch'),profileTypeFilter=document.getElementById('profileTypeFilter');function filterProfiles(){const q=profileSearch.value.toLowerCase(),type=profileTypeFilter.value.toLowerCase();document.querySelectorAll('#profileTable tbody tr').forEach(row=>{const t=row.innerText.toLowerCase();row.style.display=(!q||t.includes(q))&&(!type||t.includes(type))?'':'none'})}profileSearch.oninput=filterProfiles;profileTypeFilter.onchange=filterProfiles;
 
@@ -2051,6 +2050,120 @@ document.getElementById('expenseAddBank')?.addEventListener('click',()=>{
    w.document.write(`<!doctype html><html><head><title>Egypt Import Cost Simulation</title><style>body{font-family:Arial;padding:28px}table{width:100%;border-collapse:collapse}th,td{border:1px solid #bbb;padding:7px;text-align:left}th{background:#eee}.sum{margin:18px 0;font-size:18px}</style></head><body><h1>Egypt Import Cost Simulator</h1><p>Estimated import landed-cost simulation.</p><table><thead><tr><th>Cost Component</th><th>EGP</th></tr></thead><tbody>${r.rows.map(x=>`<tr><td>${x[0]}</td><td>${egp(x[1])}</td></tr>`).join('')}</tbody></table><div class="sum"><b>Total Import Cost: ${egp(r.total)}</b><br><b>Cost / MT: ${egp(r.qty?r.total/r.qty:0)}</b></div><p style="font-size:11px">Simulation only. Customs and tax rates must be confirmed according to HS code, origin, valuation and current Egyptian requirements.</p><script>window.onload=()=>window.print()<\/script></body></html>`);w.document.close();
  });
  calc();
+})();
+</script>
+
+
+<script>
+(function(){
+  function updateDashboardShipmentStatus(){
+    const box=document.getElementById('dashboardShipmentStatus');if(!box)return;
+    const statuses={};
+    document.querySelectorAll('#cargoTable tbody tr').forEach(row=>{
+      const cell=[...row.cells].find(td=>td.querySelector('.status'));
+      const raw=(cell?.querySelector('.status')?.textContent||'').trim();
+      if(raw) raw.split('|').map(x=>x.trim()).filter(Boolean).forEach(x=>statuses[x]=(statuses[x]||0)+1);
+    });
+    const entries=Object.entries(statuses);
+    box.innerHTML=entries.length?entries.map(([k,v])=>`${k}: ${v}`).join('<br>'):'No shipments';
+  }
+  new MutationObserver(updateDashboardShipmentStatus).observe(document.querySelector('#cargoTable tbody'),{childList:true,subtree:true});
+  updateDashboardShipmentStatus();
+
+  const table=document.getElementById('profileTable');
+  const form=document.getElementById('profileForm');
+  if(!table||!form)return;
+
+  function rowData(row){
+    const cells=row.cells;
+    return {
+      company:(cells[0]?.querySelector('b')?.textContent||'').trim(),
+      address:(cells[0]?.querySelector('.muted')?.textContent||'').trim(),
+      type:(cells[1]?.querySelector('.role')?.textContent||'').trim(),
+      country:(cells[2]?.textContent||'').trim(),
+      contact:(cells[3]?.textContent||'').trim(),
+      email:(cells[4]?.childNodes?.[0]?.textContent||'').trim(),
+      phone:(cells[4]?.querySelector('.muted')?.textContent||'').trim(),
+      taxid:(cells[5]?.textContent||'').trim(),
+      status:(cells[6]?.textContent||'').trim()
+    };
+  }
+  table.addEventListener('click',e=>{
+    const row=e.target.closest('tbody tr');if(!row)return;
+    if(e.target.closest('.profile-delete')){
+      const d=rowData(row);
+      if(confirm(`Delete ${d.company}?`)){
+        localStorage.removeItem(`profile:${d.company}`);
+        row.remove();
+        const count=document.getElementById('profileCount');if(count)count.textContent=table.querySelectorAll('tbody tr').length;
+        if(typeof fillShipmentPartySelects==='function')fillShipmentPartySelects();
+        notify('User / Profile deleted');
+      }
+    }
+    if(e.target.closest('.profile-edit')){
+      const d=rowData(row);
+      form.reset();
+      if(form.elements.edit_company)form.elements.edit_company.value=d.company;
+      const map={company:'company',address:'address',type:'type',country:'country',contact:'contact',email:'email',phone:'phone',taxid:'taxid',status:'status'};
+      Object.entries(map).forEach(([k,n])=>{if(form.elements[n])form.elements[n].value=d[k]||''});
+      form.dataset.editing=d.company;
+      const modal=document.getElementById('profileModal');
+      if(modal)modal.classList.add('open');
+    }
+  },true);
+
+  // Intercept editing before original create-only handler and update the selected row.
+  form.addEventListener('submit',e=>{
+    const original=form.dataset.editing;if(!original)return;
+    e.preventDefault();e.stopImmediatePropagation();
+    const d=Object.fromEntries(new FormData(form));
+    const row=[...table.querySelectorAll('tbody tr')].find(r=>(r.querySelector('td:first-child b')?.textContent||'').trim()===original);
+    if(row){
+      row.innerHTML=`<td><b>${d.company}</b><br><span class="muted">${d.address||''}</span></td><td><span class="role">${d.type||''}</span></td><td>${d.country||''}</td><td>${d.contact||''}</td><td>${d.email||''}<br><span class="muted">${d.phone||''}</span></td><td>${d.taxid||''}</td><td><span class="status">${d.status||'Active'}</span></td><td><button type="button" class="mini-btn profile-edit">Edit</button> <button type="button" class="mini-btn profile-delete">Delete</button></td>`;
+    }
+    if(original!==d.company)localStorage.removeItem(`profile:${original}`);
+    localStorage.setItem(`profile:${d.company}`,JSON.stringify(d));
+    delete form.dataset.editing;
+    document.getElementById('profileModal')?.classList.remove('open');
+    if(typeof fillShipmentPartySelects==='function')fillShipmentPartySelects();
+    notify('User / Profile updated');
+  },true);
+})();
+</script>
+
+
+<script>
+(function(){
+ document.addEventListener('click',function(e){
+   if(!e.target.closest('.shipment-add-exporter-user'))return;
+   document.querySelectorAll('.modal.open').forEach(m=>m.classList.remove('open'));
+   if(typeof go==='function')go('profiles');
+   else document.querySelector('[data-view="profiles"]')?.click();
+   setTimeout(()=>{
+     document.querySelector('.profile-subtab[data-profile-tab="users"]')?.click();
+     document.getElementById('newProfileBtn')?.click();
+     const type=document.querySelector('#profileForm [name="type"]');
+     if(type && [...type.options].some(o=>o.value==='Exporter'))type.value='Exporter';
+   },100);
+ });
+})();
+</script>
+
+
+<script>
+(function(){
+ document.addEventListener('click',function(e){
+   if(!e.target.closest('.shipment-add-importer-user'))return;
+   document.querySelectorAll('.modal.open').forEach(m=>m.classList.remove('open'));
+   if(typeof go==='function')go('profiles');
+   else document.querySelector('[data-view="profiles"]')?.click();
+   setTimeout(()=>{
+     document.querySelector('.profile-subtab[data-profile-tab="users"]')?.click();
+     document.getElementById('newProfileBtn')?.click();
+     const type=document.querySelector('#profileForm [name="type"]');
+     if(type && [...type.options].some(o=>o.value==='Importer'))type.value='Importer';
+   },100);
+ });
 })();
 </script>
 
