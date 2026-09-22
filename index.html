@@ -391,10 +391,10 @@
 
       <section class="view" id="vendas"><div class="intro"><div><h2>Notas de venda</h2><p>Faturamento local vinculado ao lote e saldo de estoque.</p></div><button class="primary" id="saleBtn">+ Nova nota de venda</button></div><div class="kpis" style="grid-template-columns:repeat(3,1fr)"><div class="card kpi"><div class="kpi-head"><span id="salesInvoicedMonthLabel">Invoiced this month</span></div><b id="salesInvoicedMonthKpi">EGP 0.00</b><span class="trend" id="salesInvoicedMonthInfo">0 invoices this month</span></div><div class="card kpi"><div class="kpi-head"><span>A receber</span></div><b id="salesReceivableKpi">EGP 0.00</b><span class="trend warn" id="salesReceivableInfo">Open receivables</span></div><div class="card kpi"><div class="kpi-head"><span>Volume vendido</span></div><b id="salesVolume30Kpi">0 kg</b><span class="trend" id="salesVolume30Info">Last 30 days</span></div></div>
         <div class="toolbar"><input id="salesBuyerFilter" placeholder="Filter by buyer name"><input id="salesProductFilter" placeholder="Filter by product"></div><div class="card table-card"><table class="data-table" id="salesTable"><thead><tr><th>Invoice</th><th>Date</th><th>Buyer</th><th>Product / Lot</th><th>Quantity</th><th>Total amount</th><th>Payment</th><th>Current balance</th><th>Action</th></tr></thead><tbody>
-          <tr data-invoice="INV-EG-0098" data-date="2026-09-14" data-buyer="Al Amir Group" data-product="Natural Sesame" data-lot="SES-2608-14" data-reference="AEG-2026-033" data-quantity="25000" data-unit-price="45" data-total="1125000" data-paid="0"><td><span class="ref-link">INV-EG-0098</span></td><td>14/09/2026</td><td>Al Amir Group</td><td>Natural Sesame · SES-2608-14<br><span class="muted">AEG-2026-033</span></td><td>25,000 kg</td><td class="invoice-total">EGP 1,125,000</td><td><span class="status amber payment-status">Receivable</span></td><td class="current-balance">EGP 1,125,000.00</td><td><button class="mini-btn edit-sale" type="button">Edit</button> <button class="mini-btn payment-btn">Payment</button> <button class="mini-btn pdf-btn">PDF</button> <button class="mini-btn delete-sale" type="button">Delete</button></td></tr>
-          <tr data-invoice="INV-EG-0097" data-date="2026-09-11" data-buyer="El Saada Confectionery" data-product="Red Kidney Beans" data-lot="BRB-2607-08" data-reference="AEG-2026-029" data-quantity="24000" data-unit-price="34" data-total="816000" data-paid="816000"><td><span class="ref-link">INV-EG-0097</span></td><td>11/09/2026</td><td>El Saada Confectionery</td><td>Red Kidney Beans · BRB-2607-08<br><span class="muted">AEG-2026-029</span></td><td>24,000 kg</td><td class="invoice-total">EGP 816,000</td><td><span class="status payment-status">Paid</span></td><td class="current-balance">EGP 0.00</td><td><button class="mini-btn edit-sale" type="button">Edit</button> <button class="mini-btn payment-btn">Payment</button> <button class="mini-btn pdf-btn">PDF</button> <button class="mini-btn delete-sale" type="button">Delete</button></td></tr>
-          <tr data-invoice="INV-EG-0096" data-date="2026-09-08" data-buyer="Cesam Foods" data-product="Popcorn Kernels" data-lot="POP-2606-22" data-reference="AEG-2026-026" data-quantity="40000" data-unit-price="33" data-total="1320000" data-paid="1320000"><td><span class="ref-link">INV-EG-0096</span></td><td>08/09/2026</td><td>Cesam Foods</td><td>Popcorn Kernels · POP-2606-22<br><span class="muted">AEG-2026-026</span></td><td>40,000 kg</td><td class="invoice-total">EGP 1,320,000</td><td><span class="status payment-status">Paid</span></td><td class="current-balance">EGP 0.00</td><td><button class="mini-btn edit-sale" type="button">Edit</button> <button class="mini-btn payment-btn">Payment</button> <button class="mini-btn pdf-btn">PDF</button> <button class="mini-btn delete-sale" type="button">Delete</button></td></tr>
-          <tr data-invoice="INV-EG-0095" data-date="2026-09-04" data-buyer="El Rabee Group" data-product="Black Chia" data-lot="CHI-2607-03" data-reference="AEG-2026-021" data-quantity="12650" data-unit-price="60" data-total="759000" data-paid="0"><td><span class="ref-link">INV-EG-0095</span></td><td>04/09/2026</td><td>El Rabee Group</td><td>Black Chia · CHI-2607-03<br><span class="muted">AEG-2026-021</span></td><td>12,650 kg</td><td class="invoice-total">EGP 759,000</td><td><span class="status red payment-status">Overdue</span></td><td class="current-balance">EGP 759,000.00</td><td><button class="mini-btn edit-sale" type="button">Edit</button> <button class="mini-btn payment-btn">Payment</button> <button class="mini-btn pdf-btn">PDF</button> <button class="mini-btn delete-sale" type="button">Delete</button></td></tr>
+          <tr data-invoice="INV-EG-0098" data-date="2026-09-14" data-buyer="Al Amir Group" data-product="Natural Sesame" data-lot="SES-2608-14" data-reference="AEG-2026-033" data-quantity="25000" data-unit-price="45" data-total="1125000" data-paid="0"><td><span class="ref-link">INV-EG-0098</span></td><td>14/09/2026</td><td>Al Amir Group</td><td>Natural Sesame · SES-2608-14<br><span class="muted">AEG-2026-033</span></td><td>25,000 kg</td><td class="invoice-total">EGP 1,125,000</td><td><span class="status amber payment-status">Receivable</span></td><td class="current-balance">EGP 1,125,000.00</td><td><button class="mini-btn edit-sale" type="button">Edit</button> <button class="mini-btn payment-btn">Payment</button> <button class="mini-btn pdf-btn">Invoice PDF</button> <button class="mini-btn loaded-order-pdf" type="button">Loaded Order PDF</button> <button class="mini-btn delete-sale" type="button">Delete</button></td></tr>
+          <tr data-invoice="INV-EG-0097" data-date="2026-09-11" data-buyer="El Saada Confectionery" data-product="Red Kidney Beans" data-lot="BRB-2607-08" data-reference="AEG-2026-029" data-quantity="24000" data-unit-price="34" data-total="816000" data-paid="816000"><td><span class="ref-link">INV-EG-0097</span></td><td>11/09/2026</td><td>El Saada Confectionery</td><td>Red Kidney Beans · BRB-2607-08<br><span class="muted">AEG-2026-029</span></td><td>24,000 kg</td><td class="invoice-total">EGP 816,000</td><td><span class="status payment-status">Paid</span></td><td class="current-balance">EGP 0.00</td><td><button class="mini-btn edit-sale" type="button">Edit</button> <button class="mini-btn payment-btn">Payment</button> <button class="mini-btn pdf-btn">Invoice PDF</button> <button class="mini-btn loaded-order-pdf" type="button">Loaded Order PDF</button> <button class="mini-btn delete-sale" type="button">Delete</button></td></tr>
+          <tr data-invoice="INV-EG-0096" data-date="2026-09-08" data-buyer="Cesam Foods" data-product="Popcorn Kernels" data-lot="POP-2606-22" data-reference="AEG-2026-026" data-quantity="40000" data-unit-price="33" data-total="1320000" data-paid="1320000"><td><span class="ref-link">INV-EG-0096</span></td><td>08/09/2026</td><td>Cesam Foods</td><td>Popcorn Kernels · POP-2606-22<br><span class="muted">AEG-2026-026</span></td><td>40,000 kg</td><td class="invoice-total">EGP 1,320,000</td><td><span class="status payment-status">Paid</span></td><td class="current-balance">EGP 0.00</td><td><button class="mini-btn edit-sale" type="button">Edit</button> <button class="mini-btn payment-btn">Payment</button> <button class="mini-btn pdf-btn">Invoice PDF</button> <button class="mini-btn loaded-order-pdf" type="button">Loaded Order PDF</button> <button class="mini-btn delete-sale" type="button">Delete</button></td></tr>
+          <tr data-invoice="INV-EG-0095" data-date="2026-09-04" data-buyer="El Rabee Group" data-product="Black Chia" data-lot="CHI-2607-03" data-reference="AEG-2026-021" data-quantity="12650" data-unit-price="60" data-total="759000" data-paid="0"><td><span class="ref-link">INV-EG-0095</span></td><td>04/09/2026</td><td>El Rabee Group</td><td>Black Chia · CHI-2607-03<br><span class="muted">AEG-2026-021</span></td><td>12,650 kg</td><td class="invoice-total">EGP 759,000</td><td><span class="status red payment-status">Overdue</span></td><td class="current-balance">EGP 759,000.00</td><td><button class="mini-btn edit-sale" type="button">Edit</button> <button class="mini-btn payment-btn">Payment</button> <button class="mini-btn pdf-btn">Invoice PDF</button> <button class="mini-btn loaded-order-pdf" type="button">Loaded Order PDF</button> <button class="mini-btn delete-sale" type="button">Delete</button></td></tr>
         </tbody></table></div></section>
 
       <section class="view" id="crm">
@@ -543,7 +543,30 @@
   </div><div class="dialog-foot"><button type="button" class="secondary close2">Cancelar</button><button type="submit" class="primary">Salvar carga</button></div></form></div></div>
 <div class="modal" id="importFileModal" role="dialog" aria-modal="true"><div class="dialog wide"><div class="dialog-head"><div><h3>Add Shipment to Document Sequence</h3><span class="muted">Select a registered shipment and create its six-stage checklist</span></div><button class="close importClose" aria-label="Close">×</button></div><form id="importFileForm"><div class="form"><div class="form-section">Select existing shipment</div><div class="field full"><label>Registered shipment</label><select name="registeredShipment" id="registeredShipment" required><option value="">Select shipment...</option></select></div><div class="form-section">Import identification</div><div class="field"><label>Import File / Customs Certificate No.</label><input name="fileNo" required placeholder="e.g. 390279"></div><div class="field"><label>ACID Number</label><input name="acid" placeholder="19-digit ACID"></div><div class="field"><label>Importer name</label><input value="Aurea Commercial Investment Import & Export"></div><div class="field"><label>Declaration date</label><input type="date"></div><div class="field full"><label>Initial notes</label><textarea rows="3" placeholder="Add instructions or initial pending items"></textarea></div></div><div class="dialog-foot"><button type="button" class="secondary importCancel">Cancel</button><button type="submit" class="primary">Add Shipment & Create 6 Stages</button></div></form></div></div>
 <div class="modal" id="docDraftModal" role="dialog" aria-modal="true"><div class="dialog wide"><div class="dialog-head"><div><h3 id="draftTitle">Document Draft</h3><span class="muted">Fields may be completed from the attached B/L or Commercial Invoice</span></div><button class="close draftClose" aria-label="Close">×</button></div><form id="draftForm"><div class="form"><div class="upload-zone"><b>Source attachment</b><p class="muted">Attach B/L or invoice to consult while completing the draft.</p><input type="file" accept=".pdf,.jpg,.jpeg,.png"></div><div class="form-section">Parties and references</div><div class="field"><label>Importer</label><input name="importer" value="Aurea Commercial Investment Import & Export"></div><div class="field"><label>Exporter / Shipper</label><input name="exporter" value="Agricola Ferrari Ltda."></div><div class="field"><label>Customs Certificate / Declaration No.</label><input name="declaration" value="390279"></div><div class="field"><label>ACID Number</label><input name="acid" value="6480329301001410014"></div><div class="field"><label>Bill of Lading</label><input name="bl" value="HLCUPN4260171598"></div><div class="field"><label>Commercial Invoice</label><input name="invoice" placeholder="Invoice number and date"></div><div class="form-section">Shipment details</div><div class="field"><label>Product / Goods description</label><input name="goods" value="Sesame Seeds"></div><div class="field"><label>HS Code</label><input name="hs" value="120740"></div><div class="field"><label>Packages</label><input name="packages" value="3,240 bags"></div><div class="field"><label>Containers</label><input name="containers" value="6 × 20'"></div><div class="field"><label>Gross weight</label><input name="gross" value="162,324 kg"></div><div class="field"><label>Net weight</label><input name="net"></div><div class="field"><label>Country of origin</label><input name="origin" value="Brazil"></div><div class="field"><label>Port of loading</label><input name="loading"></div><div class="field"><label>Port of arrival</label><input name="arrival" value="Damietta"></div><div class="field"><label>Vessel / Voyage</label><input name="vessel"></div><div class="form-section">Commercial and customs values</div><div class="field"><label>Invoice currency</label><select name="currency"><option>USD</option><option>EUR</option><option>EGP</option></select></div><div class="field"><label>Invoice value</label><input name="invoiceValue" type="number" step="0.01"></div><div class="field"><label>Exchange rate (EGP)</label><input name="fx" type="number" step="0.0001" value="51.89"></div><div class="field"><label>CIF value (EGP)</label><input name="cif" type="number" step="0.01"></div><div class="field"><label>Customs duty (EGP)</label><input name="duty" type="number" step="0.01"></div><div class="field"><label>VAT / Other taxes (EGP)</label><input name="tax" type="number" step="0.01"></div><div class="field full"><label>Assessment notes</label><textarea name="notes" rows="3"></textarea></div></div><div class="dialog-foot"><button type="button" class="secondary draftCancel">Cancel</button><button type="button" class="secondary" id="saveDraft">Save Draft</button><button type="submit" class="primary">Generate Draft PDF</button></div></form></div></div>
-<div class="modal" id="saleModal" role="dialog" aria-modal="true"><div class="dialog"><div class="dialog-head"><div><h3>New Sales Invoice</h3><span class="muted">Buyer from Users / Profiles and lot from available inventory</span></div><button class="close saleClose" aria-label="Close">×</button></div><form id="saleForm"><div class="form"><div class="field full"><label>Buyer name</label><div style="display:flex;gap:7px"><select name="buyer" id="buyerSearch" required style="flex:1"><option value="">Select Company / Location...</option></select><button type="button" class="mini-btn" id="saleAddBuyer">+ User</button></div></div><div class="field"><label>Seller</label><input name="seller" required value="Aurea Commercial Egypt"></div><div class="field"><label>Invoice number</label><input name="invoice" required value="INV-EG-0099"></div><div class="field"><label>Invoice date</label><input name="date" required type="date"></div><div class="field"><label>Due date</label><input name="dueDate" type="date"></div><div class="field full"><label>Shipment</label><select name="lot" id="saleLot" required><option value="">Select shipment with available inventory...</option></select></div><div class="field"><label>Product</label><input name="product" id="saleProduct" required readonly></div><div class="field"><label>Shipment reference</label><input name="reference" id="saleReference" required readonly></div><div class="field"><label>Quantity (kg)</label><input name="quantity" id="saleQuantity" required type="number" min="1"></div><div class="field"><label>Available after sale</label><input id="availableAfter" readonly placeholder="Select a lot and quantity"></div><div class="field"><label>Unit price (EGP)</label><input name="unitPrice" required type="number" min="0" step="0.01"></div><div class="field"><label>Initial payment status</label><select name="payment"><option>Receivable</option><option>Paid</option><option>Overdue</option></select></div></div><div class="dialog-foot"><button type="button" class="secondary saleCancel">Cancel</button><button type="submit" class="primary">Create Sales Invoice & Reduce Stock</button></div></form></div></div>
+<div class="modal" id="saleModal" role="dialog" aria-modal="true"><div class="dialog"><div class="dialog-head"><div><h3>New Sales Invoice</h3><span class="muted">Buyer from Users / Profiles and lot from available inventory</span></div><button class="close saleClose" aria-label="Close">×</button></div><form id="saleForm"><div class="form"><div class="field full"><label>Buyer name</label><div style="display:flex;gap:7px"><select name="buyer" id="buyerSearch" required style="flex:1"><option value="">Select Company / Location...</option></select><button type="button" class="mini-btn" id="saleAddBuyer">+ User</button></div></div><div class="field"><label>Seller</label><input name="seller" required value="Aurea Commercial Egypt"></div><div class="field"><label>Invoice number</label><input name="invoice" required value="INV-EG-0099"></div><div class="field"><label>Invoice date</label><input name="date" required type="date"></div><div class="field"><label>Due date</label><input name="dueDate" type="date"></div><div class="field full"><label>Shipment</label><select name="lot" id="saleLot" required><option value="">Select shipment with available inventory...</option></select></div><div class="field full" style="margin-top:8px">
+  <div style="border:1px solid var(--line);border-radius:12px;padding:16px;background:var(--soft,#f8fafc)">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+      <div><b style="font-size:15px">Sales Item</b><div class="muted" style="font-size:12px;margin-top:3px">Product, quantity and sales price</div></div>
+      <span class="status">ITEM 01</span>
+    </div>
+    <div class="form" style="margin:0">
+      <div class="field full"><label>Product</label><input name="product" id="saleProduct" required readonly placeholder="Product selected from inventory"></div>
+      <div class="field"><label>Quantity (kg)</label><input name="quantity" id="saleQuantity" required type="number" min="1" placeholder="0"></div>
+      <div class="field"><label>Unit Price (EGP / kg)</label><input name="unitPrice" required type="number" min="0" step="0.01" placeholder="0.00"></div>
+      <div class="field"><label>Shipment / Lot</label><input name="reference" id="saleReference" required readonly placeholder="Shipment reference"></div>
+      <div class="field"><label>Available After Sale</label><input id="availableAfter" readonly placeholder="Calculated automatically"></div>
+    </div>
+  </div>
+</div>
+<div class="field full" style="margin-top:4px">
+  <div style="border:1px solid var(--line);border-radius:12px;padding:14px">
+    <b style="font-size:14px">Delivery / Truck</b>
+    <div class="form" style="margin:10px 0 0">
+      <div class="field"><label>Plate Truck</label><input name="plateTruck" placeholder="Enter truck plate"></div>
+      <div class="field"><label>Loading Status</label><select name="truckStatus"><option value="To be loaded">To be loaded</option><option value="Loaded">Loaded</option></select></div>
+    </div>
+  </div>
+</div><div class="field"><label>Initial payment status</label><select name="payment"><option>Receivable</option><option>Paid</option><option>Overdue</option></select></div></div><div class="dialog-foot"><button type="button" class="secondary saleCancel">Cancel</button><button type="submit" class="primary">Create Sales Invoice & Reduce Stock</button></div></form></div></div>
 
 <div class="modal" id="editSaleModal" role="dialog" aria-modal="true">
   <div class="dialog wide">
@@ -559,6 +582,8 @@
         <div class="field"><label>Lot</label><input name="lot"></div>
         <div class="field"><label>Quantity (kg)</label><input name="quantity" type="number" min="1" required></div>
         <div class="field"><label>Unit price (EGP)</label><input name="unitPrice" type="number" min="0" step="0.01" required></div>
+        <div class="field"><label>Plate Truck</label><input name="plateTruck" placeholder="Truck plate"></div>
+        <div class="field"><label>Loading Status</label><select name="truckStatus"><option value="To be loaded">To be loaded</option><option value="Loaded">Loaded</option></select></div>
         <div class="field"><label>Due date</label><input name="dueDate" type="date"></div>
         <div class="field"><label>Seller</label><input name="seller"></div>
       </div>
@@ -1010,8 +1035,8 @@ document.getElementById('editSaleAddBuyer')?.addEventListener('click',addBuyerFr
     if(!stock||qty>available){notify(`Insufficient stock. Available: ${available.toLocaleString('en-US')} kg`);return}
     const total=qty*Number(d.unitPrice),paid=d.payment==='Paid'?total:0;
     const tr=document.createElement('tr');
-    Object.assign(tr.dataset,{invoice:d.invoice,date:d.date,buyer:d.buyer,product:stock.product,lot:stock.lot,reference:stock.reference,quantity:String(qty),unitPrice:d.unitPrice,total:String(total),paid:String(paid),seller:d.seller,dueDate:d.dueDate||''});
-    tr.innerHTML=`<td><span class="ref-link">${safe(d.invoice)}</span></td><td>${safe(d.date)}</td><td>${safe(d.buyer)}</td><td>${safe(stock.product)} · ${safe(stock.lot||'—')}<br><span class="muted">${safe(stock.reference)}</span></td><td>${qty.toLocaleString('en-US')} kg</td><td class="invoice-total">EGP ${money(total)}</td><td><span class="status ${paid<total?'amber':''} payment-status">${paid>=total?'Paid':d.payment}</span></td><td class="current-balance">EGP ${money(total-paid)}</td><td><button class="mini-btn edit-sale" type="button">Edit</button> <button class="mini-btn payment-btn">Payment</button> <button class="mini-btn pdf-btn">PDF</button> <button class="mini-btn delete-sale" type="button">Delete</button></td>`;
+    Object.assign(tr.dataset,{invoice:d.invoice,date:d.date,buyer:d.buyer,product:stock.product,lot:stock.lot,reference:stock.reference,quantity:String(qty),unitPrice:d.unitPrice,plateTruck:d.plateTruck||'',truckStatus:d.truckStatus||'To be loaded',total:String(total),paid:String(paid),seller:d.seller,dueDate:d.dueDate||''});
+    tr.innerHTML=`<td><span class="ref-link">${safe(d.invoice)}</span></td><td>${safe(d.date)}</td><td>${safe(d.buyer)}</td><td>${safe(stock.product)} · ${safe(stock.lot||'—')}<br><span class="muted">${safe(stock.reference)}</span></td><td>${qty.toLocaleString('en-US')} kg</td><td class="invoice-total">EGP ${money(total)}</td><td><span class="status ${paid<total?'amber':''} payment-status">${paid>=total?'Paid':d.payment}</span></td><td class="current-balance">EGP ${money(total-paid)}</td><td><button class="mini-btn edit-sale" type="button">Edit</button> <button class="mini-btn payment-btn">Payment</button> <button class="mini-btn pdf-btn">Invoice PDF</button> <button class="mini-btn loaded-order-pdf" type="button">Loaded Order PDF</button> <button class="mini-btn delete-sale" type="button">Delete</button></td>`;
     document.querySelector('#salesTable tbody').prepend(tr);
     localStorage.setItem(`sale:${d.invoice}`,JSON.stringify({...d,product:stock.product,lot:stock.lot,reference:stock.reference,quantity:qty,total,paid}));
     toggleModal(saleModal,false);
@@ -1084,6 +1109,8 @@ document.getElementById('editSaleAddBuyer')?.addEventListener('click',addBuyerFr
     f.elements.lot.value=row.dataset.lot||'';
     f.elements.quantity.value=row.dataset.quantity||'';
     f.elements.unitPrice.value=row.dataset.unitPrice||'';
+    if(f.elements.plateTruck)f.elements.plateTruck.value=row.dataset.plateTruck||'';
+    if(f.elements.truckStatus)f.elements.truckStatus.value=row.dataset.truckStatus||'To be loaded';
     f.elements.dueDate.value=row.dataset.dueDate||'';
     f.elements.seller.value=row.dataset.seller||'';
     document.getElementById('editSaleLabel').textContent=row.dataset.invoice||'';
@@ -1101,7 +1128,7 @@ document.getElementById('editSaleAddBuyer')?.addEventListener('click',addBuyerFr
     const maxQty=Math.max(0,received-soldOther);
     if(newQty>maxQty){notify(`Quantity exceeds available inventory. Maximum for this invoice: ${maxQty.toLocaleString('en-US')} kg`);return;}
     const oldInvoice=row.dataset.invoice,oldPaid=Number(row.dataset.paid||0),total=newQty*Number(d.unitPrice||0),paid=Math.min(oldPaid,total),balance=Math.max(0,total-paid);
-    Object.assign(row.dataset,{invoice:d.invoice,date:d.date,buyer:d.buyer,product:d.product,lot:d.lot,reference:d.reference,quantity:String(newQty),unitPrice:d.unitPrice,total:String(total),paid:String(paid),seller:d.seller||'',dueDate:d.dueDate||''});
+    Object.assign(row.dataset,{invoice:d.invoice,date:d.date,buyer:d.buyer,product:d.product,lot:d.lot,reference:d.reference,quantity:String(newQty),unitPrice:d.unitPrice,plateTruck:d.plateTruck||'',truckStatus:d.truckStatus||'To be loaded',total:String(total),paid:String(paid),seller:d.seller||'',dueDate:d.dueDate||''});
     const cells=row.children;
     cells[0].innerHTML=`<span class="ref-link">${safe(d.invoice)}</span>`;
     cells[1].textContent=d.date;
@@ -1157,7 +1184,7 @@ document.getElementById('editSaleAddBuyer')?.addEventListener('click',addBuyerFr
 <style>
 .status-checks{display:grid;grid-template-columns:repeat(2,minmax(150px,1fr));gap:8px;padding:10px;border:1px solid var(--line);border-radius:9px;background:#fff}.status-checks label{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600;cursor:pointer}.status-checks input{width:auto!important;margin:0}.status-stack{display:flex;gap:4px;flex-wrap:wrap}.status-stack .status{margin:0}
 </style>
-</head><body><header><b>AUREA EGYPT · SALES INVOICE</b><h1>${safe(row.dataset.invoice)}</h1><span class="muted">Invoice date: ${safe(row.dataset.date)}</span></header><section><div class="box"><b>SELLER</b><p>${safe(seller)}</p><span>Egypt</span></div><div class="box"><b>BUYER</b><p>${safe(row.dataset.buyer)}</p><span>Buyer selected from Users / Profiles</span></div></section><table><thead><tr><th>Product</th><th>Lot</th><th>Shipment Reference</th><th>Weight</th><th>Unit Price</th><th>Total</th></tr></thead><tbody><tr><td>${safe(row.dataset.product)}</td><td>${safe(row.dataset.lot)}</td><td>${safe(row.dataset.reference)}</td><td>${Number(row.dataset.quantity).toLocaleString('en-US')} kg</td><td>EGP ${money(row.dataset.unitPrice)} / kg</td><td>EGP ${money(total)}</td></tr></tbody></table><div class="total">TOTAL: EGP ${money(total)}</div><p class="muted" style="text-align:right">Paid: EGP ${money(paid)} · Balance: EGP ${money(total-paid)}</p><h3>Payment records</h3><table><thead><tr><th>Date</th><th>Bank</th><th>Amount</th><th>Balance after payment</th></tr></thead><tbody>${paymentRows}</tbody></table><button onclick="window.print()" style="margin-top:24px;padding:10px 18px">Print / Save as PDF</button></body></html>`);w.document.close();setTimeout(()=>w.print(),350)}
+</head><body><header><b>AUREA EGYPT · SALES INVOICE</b><h1>${safe(row.dataset.invoice)}</h1><span class="muted">Invoice date: ${safe(row.dataset.date)}</span></header><section><div class="box"><b>SELLER</b><p>${safe(seller)}</p><span>Egypt</span></div><div class="box"><b>BUYER</b><p>${safe(row.dataset.buyer)}</p><span>Buyer selected from Users / Profiles</span></div></section><table><thead><tr><th>Product</th><th>Lot</th><th>Shipment Reference</th><th>Plate Truck</th><th>Weight</th><th>Unit Price</th><th>Total</th></tr></thead><tbody><tr><td>${safe(row.dataset.product)}</td><td>${safe(row.dataset.lot)}</td><td>${safe(row.dataset.reference)}</td><td>${safe(row.dataset.plateTruck||'—')}</td><td>${Number(row.dataset.quantity).toLocaleString('en-US')} kg</td><td>EGP ${money(row.dataset.unitPrice)} / kg</td><td>EGP ${money(total)}</td></tr></tbody></table><div class="total">TOTAL: EGP ${money(total)}</div><p class="muted" style="text-align:right">Paid: EGP ${money(paid)} · Balance: EGP ${money(total-paid)}</p><h3>Payment records</h3><table><thead><tr><th>Date</th><th>Bank</th><th>Amount</th><th>Balance after payment</th></tr></thead><tbody>${paymentRows}</tbody></table><button onclick="window.print()" style="margin-top:24px;padding:10px 18px">Print / Save as PDF</button></body></html>`);w.document.close();setTimeout(()=>w.print(),350)}
   document.getElementById('salesTable').onclick=e=>{
     const row=e.target.closest('tr');
     if(!row||!row.dataset.invoice)return;
@@ -1179,7 +1206,10 @@ document.getElementById('editSaleAddBuyer')?.addEventListener('click',addBuyerFr
   const salesBuyerFilter=document.getElementById('salesBuyerFilter'),salesProductFilter=document.getElementById('salesProductFilter');function filterSales(){const buyer=salesBuyerFilter.value.toLowerCase(),product=salesProductFilter.value.toLowerCase();document.querySelectorAll('#salesTable tbody tr').forEach(row=>row.style.display=(!buyer||row.dataset.buyer.toLowerCase().includes(buyer))&&(!product||row.dataset.product.toLowerCase().includes(product))?'':'none')}salesBuyerFilter.oninput=filterSales;salesProductFilter.oninput=filterSales;
   stockRows().forEach(row=>{const saved=localStorage.getItem(`stock:${row.dataset.stockLot}`);if(saved!==null){row.dataset.available=saved;row.querySelector('.available-value').textContent=`${Number(saved).toLocaleString('en-US')} kg`}});
   document.querySelectorAll('.role').forEach(x=>{if(x.textContent==='Buyer')x.textContent='Consignee'});document.getElementById('profileCount').textContent=document.querySelectorAll('#profileTable tbody tr').length;document.getElementById('newProfileBtn').onclick=()=>toggleModal(profileModal,true);document.querySelector('.profileClose').onclick=document.querySelector('.profileCancel').onclick=()=>toggleModal(profileModal,false);document.getElementById('profileForm').onsubmit=e=>{e.preventDefault();const d=Object.fromEntries(new FormData(e.target));const tr=document.createElement('tr');tr.innerHTML=`<td><b>${d.company}</b><br><span class="muted">${d.address}</span></td><td><span class="role">${d.type}</span></td><td>${d.country}</td><td>${d.contact||'—'}</td><td>${d.email||'—'}<br><span class="muted">${d.phone||''}</span></td><td>${d.taxId||'—'}</td><td><span class="status">${d.status}</span></td><td><button type="button" class="mini-btn profile-edit">Edit</button> <button type="button" class="mini-btn profile-delete">Delete</button></td>`;document.querySelector('#profileTable tbody').prepend(tr);document.getElementById('profileCount').textContent=document.querySelectorAll('#profileTable tbody tr').length;const opt=document.createElement('option');opt.value=d.company;document.getElementById('buyerList').appendChild(opt);localStorage.setItem(`profile:${d.company}`,JSON.stringify(d));
-  fillBuyerSelect(document.getElementById('buyerSearch'));fillBuyerSelect(document.getElementById('editSaleBuyer'));toggleModal(profileModal,false);notify(`${d.company} profile created`);e.target.reset()};
+  const profileModalEl=document.getElementById('profileModal');
+  if(profileModalEl) profileModalEl.classList.remove('open');
+
+  fillBuyerSelect(document.getElementById('buyerSearch'));fillBuyerSelect(document.getElementById('editSaleBuyer'));toggleModal(profileModal,false);profileModal.classList.remove('open');profileModal.style.display='none';setTimeout(()=>{profileModal.style.display='';profileModal.classList.remove('open')},50);notify(`${d.company} profile created`);e.target.reset()};
   const profileSearch=document.getElementById('profileSearch'),profileTypeFilter=document.getElementById('profileTypeFilter');function filterProfiles(){const q=profileSearch.value.toLowerCase(),type=profileTypeFilter.value.toLowerCase();document.querySelectorAll('#profileTable tbody tr').forEach(row=>{const t=row.innerText.toLowerCase();row.style.display=(!q||t.includes(q))&&(!type||t.includes(type))?'':'none'})}profileSearch.oninput=filterProfiles;profileTypeFilter.onchange=filterProfiles;
 
 
@@ -1211,24 +1241,65 @@ document.getElementById('editSaleAddBuyer')?.addEventListener('click',addBuyerFr
   const fmtDate = v => v ? new Date(v+'T00:00:00').toLocaleDateString('en-GB') : '—';
   const statusClass = v => /clearance/i.test(v||'') ? 'blue' : /pending|transit/i.test(v||'') ? 'amber' : '';
 
-  function shipmentMeta(ref){try{return JSON.parse(localStorage.getItem(`shipmentMeta:${ref}`)||'{}')}catch(e){return {}}}
-  function saveShipmentMeta(ref,meta){localStorage.setItem(`shipmentMeta:${ref}`,JSON.stringify(meta||{}))}
+  function shipmentMeta(ref){
+    try{
+      const main=JSON.parse(localStorage.getItem(`shipmentMeta:${ref}`)||'{}');
+      const legacy=JSON.parse(localStorage.getItem(`shipment-meta:${ref}`)||'{}');
+      const parties=JSON.parse(localStorage.getItem('aurea:shipmentParties')||'{}')[ref]||{};
+      return {...legacy,...main,...parties};
+    }catch(e){return {}}
+  }
+  function saveShipmentMeta(ref,meta){
+    const clean={...(meta||{})};
+    localStorage.setItem(`shipmentMeta:${ref}`,JSON.stringify(clean));
+    localStorage.setItem(`shipment-meta:${ref}`,JSON.stringify(clean));
+    let parties={};try{parties=JSON.parse(localStorage.getItem('aurea:shipmentParties')||'{}')}catch(_){}
+    parties[ref]={exporter:clean.exporter||'',importer:clean.importer||''};
+    localStorage.setItem('aurea:shipmentParties',JSON.stringify(parties));
+  }
   function shipmentStatusClass(v){return /payment/i.test(v||'')?'red':/booking|loaded|pending/i.test(v||'')?'amber':''}
 
+
+  // Preserve and migrate Exporter / Importer for the shipment list.
+  try{
+    const parties=JSON.parse(localStorage.getItem('aurea:shipmentParties')||'{}');
+    for(let i=0;i<localStorage.length;i++){
+      const k=localStorage.key(i)||'';
+      if(!k.startsWith('shipmentMeta:') && !k.startsWith('shipment-meta:'))continue;
+      const ref=k.substring(k.indexOf(':')+1);
+      const m=JSON.parse(localStorage.getItem(k)||'{}');
+      if(ref && (m.exporter||m.importer))parties[ref]={exporter:m.exporter||'',importer:m.importer||''};
+    }
+    localStorage.setItem('aurea:shipmentParties',JSON.stringify(parties));
+  }catch(_){}
+
   function rowHtml(x){
-    const tonnes = Number(x.quantity_kg||0)/1000, meta=shipmentMeta(x.reference);
+    const tonnes=Number(x.quantity_kg||0)/1000, meta=shipmentMeta(x.reference);
     const unit=Number(meta.unitPrice||0), total=Number(meta.totalAmount||((Number(x.quantity_kg||0)/1000)*unit));
     const status=meta.status||x.status||'Pending', tasks=String(meta.tasks||'').split('\n').map(v=>v.trim()).filter(Boolean);
     const taskHtml=tasks.length?`<ul class="task-list">${tasks.slice(0,3).map(t=>`<li>${esc(t)}</li>`).join('')}${tasks.length>3?`<li>+${tasks.length-3} more</li>`:''}</ul>`:'<small class="muted">No tasks</small>';
-    return `<tr data-id="${esc(x.id)}" data-reference="${esc(x.reference)}" data-product="${esc(x.product||'')}" data-port="${esc(x.arrival_port||'')}" data-vessel="${esc(x.vessel||'')}" data-eta="${esc(x.eta||'')}" data-quantity-kg="${Number(x.quantity_kg||0)}"><td><button type="button" class="linkbtn shipment-open">${esc(x.reference)}</button></td><td>${esc(x.cargox_number||'—')}<br><span class="muted">${esc(x.bill_of_lading||'—')}</span></td><td>${esc(x.acid_number||'—')}<br><span class="muted">Exp. ${fmtDate(x.acid_expiry)}</span></td><td>${esc(x.vessel||'—')}<br><span class="muted">${esc(x.arrival_port||'—')}</span></td><td>${fmtDate(x.eta)}</td><td>${esc(x.product||'—')}<br><b>${tonnes.toLocaleString('en-US',{maximumFractionDigits:3})} t</b></td><td class="amount-cell"><b>${unit?unit.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:4}):'—'}</b><small>per ton</small></td><td class="amount-cell"><b>${total?total.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}):'—'}</b></td><td><span class="status-stack">${String(status).split(" | ").map(st=>`<span class="status ${shipmentStatusClass(st)}">${esc(st)}</span>`).join("")}</span>${taskHtml}</td><td><button class="mini-btn details" type="button">Open</button> <button class="mini-btn delete-shipment" type="button">Delete</button></td></tr>`;
+    return `<tr data-id="${esc(x.id)}" data-reference="${esc(x.reference)}" data-product="${esc(x.product||'')}" data-port="${esc(x.arrival_port||'')}" data-vessel="${esc(x.vessel||'')}" data-eta="${esc(x.eta||'')}" data-quantity-kg="${Number(x.quantity_kg||0)}">
+      <td><button type="button" class="linkbtn shipment-open">${esc(x.reference)}</button></td>
+      <td>${esc(meta.exporter||'—')}</td>
+      <td>${esc(meta.importer||'—')}</td>
+      <td>${esc(x.bill_of_lading||'—')}</td>
+      <td>${esc(x.acid_number||'—')}<br><span class="muted">Exp. ${fmtDate(x.acid_expiry)}</span></td>
+      <td>${esc(x.vessel||'—')}<br><span class="muted">${esc(x.arrival_port||'—')}</span></td>
+      <td>${fmtDate(x.eta)}</td>
+      <td>${esc(x.product||'—')}<br><b>${tonnes.toLocaleString('en-US',{maximumFractionDigits:3})} t</b></td>
+      <td class="amount-cell"><b>${unit?unit.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:4}):'—'}</b><small>per ton</small></td>
+      <td class="amount-cell"><b>${total?total.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}):'—'}</b></td>
+      <td><span class="status ${shipmentStatusClass(status)}">${esc(status)}</span>${taskHtml}</td>
+      <td><button class="mini-btn shipment-open" type="button">Open</button> <button class="mini-btn delete-shipment" type="button">Delete</button></td>
+    </tr>`;
   }
-  let loadedShipments=[];
+
   async function loadShipments(){
-    tbody.innerHTML='<tr><td colspan="10" class="muted">Loading shipments from Supabase…</td></tr>';
+    tbody.innerHTML='<tr><td colspan="12" class="muted">Loading shipments from Supabase…</td></tr>';
     const {data,error}=await db.from('shipments').select('*').order('created_at',{ascending:false});
     if(error){tbody.innerHTML=`<tr><td colspan="10" style="color:var(--red)">${esc(error.message)}</td></tr>`;return;}
     loadedShipments=data||[]; window.loadedShipments=loadedShipments;
-    tbody.innerHTML=data.length?data.map(rowHtml).join(''):'<tr><td colspan="10" class="muted">No shipments registered.</td></tr>';
+    tbody.innerHTML=data.length?data.map(rowHtml).join(''):'<tr><td colspan="12" class="muted">No shipments registered.</td></tr>';
     if(typeof syncImportDocumentShipments==='function')syncImportDocumentShipments();
     if(typeof renderInventory==='function')renderInventory();
     if(typeof syncSalesShipmentOptions==='function')syncSalesShipmentOptions();
@@ -1254,10 +1325,12 @@ document.getElementById('editSaleAddBuyer')?.addEventListener('click',addBuyerFr
     const {data:{user}}=await db.auth.getUser();
     if(!user){notify('Please sign in again.');return;}
     const statuses=[...document.querySelectorAll('#shipmentStatusChecks input:checked')].map(x=>x.value).join(' | ')||'Pending';
+    const selectedExporter=document.getElementById('shipmentExporter')?.value||d.exporter||'';
+    const selectedImporter=document.getElementById('shipmentImporter')?.value||d.importer||'';
     const payload={reference:(d.reference||'').trim(),cargox_number:null,acid_number:(d.acid_number||'').trim()||null,acid_expiry:d.acid_expiry||null,bill_of_lading:(d.bill_of_lading||'').trim()||null,vessel:(d.vessel||'').trim()||null,arrival_port:d.arrival_port||null,eta:d.eta||null,product:(d.product||'').trim()||null,quantity_kg:Number(d.quantity_ton||0)*1000,notes:(d.notes||'').trim()||null,status:statuses,created_by:user.id};
     const {error}=await db.from('shipments').insert(payload);
     if(error){notify('Could not save: '+error.message);return;}
-    saveShipmentMeta(payload.reference,{exporter:d.exporter||'',importer:d.importer||'',originPort:d.origin_port||'',unitPrice:Number(d.unit_price||0),totalAmount:Number(d.total_amount||0),status:statuses,tasks:document.getElementById('shipmentTasks')?.value||''});
+    saveShipmentMeta(payload.reference,{exporter:selectedExporter,importer:selectedImporter,originPort:d.origin_port||'',unitPrice:Number(d.unit_price||0),totalAmount:Number(d.total_amount||0),status:statuses,tasks:document.getElementById('shipmentTasks')?.value||''});
     closeModal();cargoForm.reset();document.getElementById('shipmentTotalAmount').value='';notify(`Shipment ${payload.reference} saved in Supabase`);await loadShipments();
   };
 
@@ -1828,59 +1901,7 @@ document.getElementById('expenseAddBank')?.addEventListener('click',()=>{
 </script>
 
 
-<script>
-(function(){
-  function shipmentMetaFor(reference){
-    try{
-      if(typeof loadShipmentMeta==='function') return loadShipmentMeta(reference)||{};
-    }catch(_){}
-    try{return JSON.parse(localStorage.getItem('shipment-meta:'+reference)||'{}')}catch(_){return {}}
-  }
 
-  function enhanceShipmentsCargoTable(){
-    const table=document.getElementById('cargoTable');
-    if(!table) return;
-    const rows=[...table.querySelectorAll('tbody tr')];
-    rows.forEach(row=>{
-      if(row.dataset.partyColumnsAdded==='1') return;
-      const ref=(row.querySelector('.ref-link')?.textContent||row.cells[0]?.textContent||'').trim();
-      if(!ref) return;
-      const meta=shipmentMetaFor(ref);
-
-      // Existing second column contains CargoX / B.L.; use its last visible line as fallback B/L.
-      const oldCargoBl=row.cells[1];
-      let fallbackBL='';
-      if(oldCargoBl){
-        const muted=oldCargoBl.querySelector('.muted');
-        fallbackBL=(muted?.textContent||'').trim();
-      }
-
-      const exporter=document.createElement('td');
-      exporter.textContent=meta.exporter||'—';
-      const importer=document.createElement('td');
-      importer.textContent=meta.importer||'—';
-      const bl=document.createElement('td');
-      bl.textContent=meta.bill_of_lading||meta.billOfLading||fallbackBL||'—';
-
-      if(oldCargoBl){
-        oldCargoBl.replaceWith(exporter, importer, bl);
-      }
-      row.dataset.partyColumnsAdded='1';
-    });
-  }
-
-  const observer=new MutationObserver(()=>enhanceShipmentsCargoTable());
-  const body=document.querySelector('#cargoTable tbody');
-  if(body) observer.observe(body,{childList:true,subtree:true});
-
-  document.addEventListener('click',e=>{
-    if(e.target.closest('[data-view="cargas"]') || e.target.closest('[data-go="cargas"]')){
-      setTimeout(enhanceShipmentsCargoTable,50);
-    }
-  });
-  setTimeout(enhanceShipmentsCargoTable,100);
-})();
-</script>
 
 
 <div class="modal" id="bankProfileModal" role="dialog" aria-modal="true">
@@ -2164,6 +2185,40 @@ document.getElementById('expenseAddBank')?.addEventListener('click',()=>{
      if(type && [...type.options].some(o=>o.value==='Importer'))type.value='Importer';
    },100);
  });
+})();
+</script>
+
+
+<script>
+(function(){
+ const form=document.getElementById('profileForm'), modal=document.getElementById('profileModal');
+ if(!form||!modal)return;
+ form.addEventListener('submit',function(){
+   if(form.dataset.editing)return;
+   setTimeout(function(){
+     modal.classList.remove('open');
+     modal.setAttribute('aria-hidden','true');
+   },0);
+ },false);
+ document.getElementById('newProfileBtn')?.addEventListener('click',()=>modal.removeAttribute('aria-hidden'));
+})();
+</script>
+
+
+<script>
+(function(){
+ document.addEventListener('click',function(e){
+  const btn=e.target.closest('.loaded-order-pdf');if(!btn)return;
+  const row=btn.closest('#salesTable tbody tr');if(!row)return;
+  const status=row.dataset.truckStatus||'To be loaded';
+  if(status!=='Loaded'){ if(typeof notify==='function')notify('This order is not marked as Loaded. Change Delivery / Truck status to Loaded first.'); else alert('Mark this order as Loaded first.'); return; }
+  const esc=v=>String(v||'—').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const qty=Number(row.dataset.quantity||0).toLocaleString('en-US',{maximumFractionDigits:3});
+  const date=row.dataset.date?new Date(row.dataset.date+'T00:00:00').toLocaleDateString('en-GB'):'—';
+  const w=window.open('','_blank');if(!w){alert('Allow pop-ups to generate PDF.');return;}
+  w.document.write(`<!doctype html><html><head><title>Loaded Order - ${esc(row.dataset.invoice)}</title><style>body{font-family:Arial,sans-serif;padding:34px;color:#172033}h1{font-size:24px;margin:0 0 5px}.sub{color:#667085;margin-bottom:20px}.badge{display:inline-block;padding:6px 12px;border-radius:18px;background:#e9f7ef;font-weight:700;margin-bottom:20px}table{width:100%;border-collapse:collapse}th,td{border:1px solid #d8dde6;padding:11px;text-align:left}th{background:#f4f6f8;width:34%}.weight{font-size:21px;font-weight:800}.foot{margin-top:25px;font-size:11px;color:#667085}</style></head><body><h1>LOADED ORDER</h1><div class="sub">Loading Confirmation</div><div class="badge">LOADED</div><table><tr><th>Sales Invoice</th><td>${esc(row.dataset.invoice)}</td></tr><tr><th>Date</th><td>${date}</td></tr><tr><th>Buyer</th><td><b>${esc(row.dataset.buyer)}</b></td></tr><tr><th>Product</th><td>${esc(row.dataset.product)}</td></tr><tr><th>Shipment / Lot</th><td>${esc(row.dataset.reference)}${row.dataset.lot?' · '+esc(row.dataset.lot):''}</td></tr><tr><th>Loaded Weight</th><td class="weight">${qty} kg</td></tr><tr><th>Plate Truck</th><td><b>${esc(row.dataset.plateTruck)}</b></td></tr><tr><th>Status</th><td>Loaded</td></tr></table><div class="foot">Aurea Egypt — Import Operations Control</div><script>window.onload=()=>window.print()<\/script></body></html>`);
+  w.document.close();
+ },true);
 })();
 </script>
 
