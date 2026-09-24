@@ -617,7 +617,7 @@
   </div>
 </div>
 <div class="modal" id="paymentModal" role="dialog" aria-modal="true"><div class="dialog"><div class="dialog-head"><div><h3>Record Payment</h3><span class="muted" id="paymentInvoiceLabel">Sales invoice</span></div><button class="close paymentClose" aria-label="Close">×</button></div><form id="paymentForm"><div class="form"><input type="hidden" name="invoice"><div class="field"><label>Payment date</label><input name="paymentDate" type="date" required></div><div class="field"><label>Payment amount (EGP)</label><input name="paymentAmount" type="number" min="0.01" step="0.01" required></div><div class="field full"><label>Payment bank</label><input name="paymentBank" required placeholder="Enter bank name"></div><div class="field full"><label>Current balance</label><input id="paymentBalance" readonly></div></div><div class="dialog-foot"><button type="button" class="secondary paymentCancel">Cancel</button><button type="submit" class="primary">Save Payment</button></div></form></div></div>
-<div class="modal" id="profileModal" role="dialog" aria-modal="true"><div class="dialog wide"><div class="dialog-head"><div><h3>New User / Profile</h3><span class="muted">Create a reusable company, location or operational contact</span></div><button class="close profileClose" aria-label="Close">×</button></div><form id="profileForm"><input type="hidden" name="edit_company" value=""><div class="form"><div class="field"><label>Profile type</label><select name="type" required><option>Administrator</option><option>Exporter</option><option>Importer</option><option>Notify</option><option>Consignee</option><option>Port / Terminal / Location</option><option>Fumigation Company</option></select></div><div class="field"><label>Status</label><select name="status"><option>Active</option><option>Inactive</option></select></div><div class="field"><label>Company / Location name</label><input name="company" required></div><div class="field"><label>Country</label><input name="country" required></div><div class="field full"><label>Address</label><input name="address" required></div><div class="field"><label>Email</label><input name="email" type="email"></div><div class="field"><label>Phone</label><input name="phone"></div><div class="field"><label>Tax ID / Registration</label><input name="taxId"></div><div class="field"><label>Contact name</label><input name="contact"></div></div><div class="dialog-foot"><button type="button" class="secondary profileCancel">Cancel</button><button type="submit" class="primary">Create Profile</button></div></form></div></div>
+<div class="modal" id="profileModal" role="dialog" aria-modal="true"><div class="dialog wide"><div class="dialog-head"><div><h3>New User / Profile</h3><span class="muted">Create a reusable company, location or operational contact</span></div><button class="close profileClose" aria-label="Close">×</button></div><form id="profileForm"><input type="hidden" name="edit_company" value=""><div class="form"><div class="field"><label>Profile type</label><select name="type" required><option>Administrator</option><option>Exporter</option><option>Importer</option><option>Notify</option><option>Consignee</option><option>Port / Terminal / Location</option><option>Fumigation Company</option></select></div><div class="field"><label>Status</label><select name="status"><option>Active</option><option>Inactive</option></select></div><div class="field"><label>Company / Location name</label><input name="company" required></div><div class="field"><label>Country</label><input name="country" required></div><div class="field full"><label>Address</label><input name="address" required></div><div class="field"><label>Email</label><input name="email" type="email"></div><div class="field"><label>Phone</label><input name="phone"></div><div class="field"><label>Tax ID / Registration</label><input name="taxId"></div><div class="field"><label>Contact name</label><input name="contact"></div><div class="field"><label>Position</label><input name="position"></div><div class="field"><label>WhatsApp</label><input name="whatsapp" type="tel" placeholder="+20 10 1234 5678"></div></div><div class="dialog-foot"><button type="button" class="secondary profileCancel">Cancel</button><button type="submit" class="primary">Create Profile</button></div></form></div></div>
 <div class="toast" id="toast">Registro salvo com sucesso.</div>
 
 
@@ -650,15 +650,16 @@
   </div>
 </div>
 <div class="modal" id="crmModal" role="dialog" aria-modal="true"><div class="dialog crm-dialog">
-<div class="dialog-head"><div><h3 id="crmModalTitle">New Contact / Opportunity</h3><span class="muted">International commercial relationship</span></div><button class="close crmClose">×</button></div>
+<div class="dialog-head"><div><h3 id="crmModalTitle">New Contact / Opportunity</h3><span class="muted">Customer linked to Users / Profiles · CRM update 24 Sep</span></div><button class="close crmClose">×</button></div>
 <form id="crmForm"><input type="hidden" name="editId">
 <div class="crm-form-section"><h4>Customer</h4><div class="form">
-<div class="field"><label>Company / Customer</label><input name="company" required></div>
-<div class="field"><label>Country</label><input name="country" required></div>
-<div class="field"><label>Contact name</label><input name="contact"></div>
-<div class="field"><label>Position</label><input name="position"></div>
-<div class="field"><label>Email</label><input name="email" type="email"></div>
-<div class="field"><label>Phone / WhatsApp</label><input name="phone"></div>
+<div class="field full"><label>Company / Customer — select from Users / Profiles</label><div style="display:flex;gap:8px"><input name="company" id="crmCustomer" list="crmCustomerList" autocomplete="off" required style="flex:1" placeholder="Type to find a registered customer"><datalist id="crmCustomerList"></datalist><button type="button" class="mini-btn" id="crmAddCustomer">+ User</button></div><small id="crmCustomerHint" class="muted">Choose a registered company from the suggestions.</small></div>
+<div class="field"><label>Country</label><input name="country" required readonly></div>
+<div class="field"><label>Contact name</label><input name="contact" readonly></div>
+<div class="field"><label>Position</label><input name="position" readonly></div>
+<div class="field"><label>Email</label><input name="email" type="email" readonly></div>
+<div class="field"><label>Phone</label><input name="phone" readonly></div>
+<div class="field"><label>WhatsApp</label><input name="whatsapp" readonly></div>
 </div></div>
 <div class="crm-form-section"><h4>Commercial Opportunity</h4><div class="form">
 <div class="field"><label>Product</label><input name="product" required placeholder="Sesame, beans, popcorn..."></div>
@@ -984,6 +985,7 @@ initImportStageTabs();
   
   function registeredBuyerCompanies(){
  const found=new Map();
+ if(window.aureaSharedProfilesEnabled)return (window.aureaProfiles?.()||[]).map(p=>p.company).filter(Boolean).sort((a,b)=>a.localeCompare(b));
  document.querySelectorAll('#profileTable tbody tr').forEach(row=>{const c=(row.querySelector('td:first-child b')?.textContent||'').trim();if(c)found.set(c.toLowerCase(),c)});
  for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(!k||!k.startsWith('profile:'))continue;try{const p=JSON.parse(localStorage.getItem(k)||'{}'),c=String(p.company||'').trim();if(c)found.set(c.toLowerCase(),c)}catch(_){}}
  return [...found.values()].sort((a,b)=>a.localeCompare(b));
@@ -1227,7 +1229,7 @@ document.getElementById('editSaleAddBuyer')?.addEventListener('click',addBuyerFr
   document.querySelectorAll('#salesTable tbody tr[data-invoice]').forEach(row=>{if(deletedSalesOnLoad.includes(row.dataset.invoice))row.remove()});
   const salesBuyerFilter=document.getElementById('salesBuyerFilter'),salesProductFilter=document.getElementById('salesProductFilter');function filterSales(){const buyer=salesBuyerFilter.value.toLowerCase(),product=salesProductFilter.value.toLowerCase();document.querySelectorAll('#salesTable tbody tr').forEach(row=>row.style.display=(!buyer||row.dataset.buyer.toLowerCase().includes(buyer))&&(!product||row.dataset.product.toLowerCase().includes(product))?'':'none')}salesBuyerFilter.oninput=filterSales;salesProductFilter.oninput=filterSales;
   stockRows().forEach(row=>{const saved=localStorage.getItem(`stock:${row.dataset.stockLot}`);if(saved!==null){row.dataset.available=saved;row.querySelector('.available-value').textContent=`${Number(saved).toLocaleString('en-US')} kg`}});
-  document.querySelectorAll('.role').forEach(x=>{if(x.textContent==='Buyer')x.textContent='Consignee'});document.getElementById('profileCount').textContent=document.querySelectorAll('#profileTable tbody tr').length;document.getElementById('newProfileBtn').onclick=()=>toggleModal(profileModal,true);document.querySelector('.profileClose').onclick=document.querySelector('.profileCancel').onclick=()=>toggleModal(profileModal,false);document.getElementById('profileForm').onsubmit=e=>{e.preventDefault();const d=Object.fromEntries(new FormData(e.target));const tr=document.createElement('tr');tr.innerHTML=`<td><b>${d.company}</b><br><span class="muted">${d.address}</span></td><td><span class="role">${d.type}</span></td><td>${d.country}</td><td>${d.contact||'—'}</td><td>${d.email||'—'}<br><span class="muted">${d.phone||''}</span></td><td>${d.taxId||'—'}</td><td><span class="status">${d.status}</span></td><td><button type="button" class="mini-btn profile-edit">Edit</button> <button type="button" class="mini-btn profile-delete">Delete</button></td>`;document.querySelector('#profileTable tbody').prepend(tr);document.getElementById('profileCount').textContent=document.querySelectorAll('#profileTable tbody tr').length;const opt=document.createElement('option');opt.value=d.company;document.getElementById('buyerList').appendChild(opt);localStorage.setItem(`profile:${d.company}`,JSON.stringify(d));
+  document.querySelectorAll('.role').forEach(x=>{if(x.textContent==='Buyer')x.textContent='Consignee'});document.getElementById('profileCount').textContent=document.querySelectorAll('#profileTable tbody tr').length;document.getElementById('newProfileBtn').onclick=()=>toggleModal(profileModal,true);document.querySelector('.profileClose').onclick=document.querySelector('.profileCancel').onclick=()=>toggleModal(profileModal,false);document.getElementById('profileForm').onsubmit=e=>{if(window.aureaSharedProfilesEnabled)return;e.preventDefault();const d=Object.fromEntries(new FormData(e.target));const tr=document.createElement('tr');tr.innerHTML=`<td><b>${d.company}</b><br><span class="muted">${d.address}</span></td><td><span class="role">${d.type}</span></td><td>${d.country}</td><td>${d.contact||'—'}</td><td>${d.email||'—'}<br><span class="muted">${d.phone||''}</span></td><td>${d.taxId||'—'}</td><td><span class="status">${d.status}</span></td><td><button type="button" class="mini-btn profile-edit">Edit</button> <button type="button" class="mini-btn profile-delete">Delete</button></td>`;document.querySelector('#profileTable tbody').prepend(tr);document.getElementById('profileCount').textContent=document.querySelectorAll('#profileTable tbody tr').length;const opt=document.createElement('option');opt.value=d.company;document.getElementById('buyerList').appendChild(opt);localStorage.setItem(`profile:${d.company}`,JSON.stringify(d));
   const profileModalEl=document.getElementById('profileModal');
   if(profileModalEl) profileModalEl.classList.remove('open');
 
@@ -1842,7 +1844,7 @@ document.getElementById('expenseAddBank')?.addEventListener('click',()=>{
  document.getElementById('clearBankStatement').onclick=async()=>{if(!confirm('Clear statement lines and reconciliations for all users?'))return;try{const {error}=await db.from('egypt_statement_lines').delete().in('id',statementLines.map(x=>x.id));if(error)throw error;await loadFinance()}catch(err){notify('Could not clear statement: '+err.message)}};renderReconcile();
  document.getElementById('expenseAddBtn')?.addEventListener('click',()=>{syncShipments();syncExpenseSuppliers();syncExpenseBanks();modal.classList.add('open')});
  document.querySelectorAll('.expenseClose').forEach(b=>b.addEventListener('click',()=>modal.classList.remove('open')));
- form?.addEventListener('submit',async e=>{e.preventDefault();const fd=new FormData(form),items=[...itemsBox.querySelectorAll('.expense-item')].map(r=>({description:r.querySelector('[name=itemDescription]').value.trim(),category:r.querySelector('[name=itemCategory]').value,currency:r.querySelector('[name=itemCurrency]').value,amount:Number(r.querySelector('[name=itemAmount]').value)}));if(!items.length||items.some(x=>!x.description||!Number.isFinite(x.amount)||x.amount<=0)){notify('Fill in the description and positive amount for every item.');return}if(new Set(items.map(x=>x.currency)).size>1){notify('Select the same currency on every line before saving.');return}const amount=items.reduce((sum,x)=>sum+x.amount,0),paid=Number(fd.get('paid')||0);if(!Number.isFinite(paid)||paid<0||paid>amount){notify('Paid amount must not exceed the total.');return}const rows=get(),selectedShipments=[...form.querySelectorAll('input[name="shipment_check"]:checked')].map(x=>x.value),invoiceFile=form.querySelector('[name="invoice_file"]')?.files?.[0];const expense={id:crypto.randomUUID(),date:fd.get('date'),shipment:selectedShipments.join(', '),shipments:selectedShipments,category:[...new Set(items.map(x=>x.category))].join(', '),supplier:fd.get('supplier')||'',invoice_number:fd.get('invoice_number')||'',invoice_file:invoiceFile?.name||'',bank_payment:fd.get('bank_payment')||'',items,description:items.map(x=>x.description).join(' · '),currency:items[0].currency,amount,paid,dueDate:fd.get('dueDate')||'',notes:fd.get('notes')||''};try{await addFinance('egypt_expenses',expense)}catch(err){notify('Could not save expense: '+err.message);return}form.reset();itemsBox.innerHTML='';addItem();modal.classList.remove('open');render();renderReconcile();notify('Expense saved');});
+ form?.addEventListener('submit',async e=>{e.preventDefault();const customer=applyCustomer();if(!customer){form.elements.company.reportValidity();return}const fd=new FormData(form),items=[...itemsBox.querySelectorAll('.expense-item')].map(r=>({description:r.querySelector('[name=itemDescription]').value.trim(),category:r.querySelector('[name=itemCategory]').value,currency:r.querySelector('[name=itemCurrency]').value,amount:Number(r.querySelector('[name=itemAmount]').value)}));if(!items.length||items.some(x=>!x.description||!Number.isFinite(x.amount)||x.amount<=0)){notify('Fill in the description and positive amount for every item.');return}if(new Set(items.map(x=>x.currency)).size>1){notify('Select the same currency on every line before saving.');return}const amount=items.reduce((sum,x)=>sum+x.amount,0),paid=Number(fd.get('paid')||0);if(!Number.isFinite(paid)||paid<0||paid>amount){notify('Paid amount must not exceed the total.');return}const rows=get(),selectedShipments=[...form.querySelectorAll('input[name="shipment_check"]:checked')].map(x=>x.value),invoiceFile=form.querySelector('[name="invoice_file"]')?.files?.[0];const expense={id:crypto.randomUUID(),date:fd.get('date'),shipment:selectedShipments.join(', '),shipments:selectedShipments,category:[...new Set(items.map(x=>x.category))].join(', '),supplier:fd.get('supplier')||'',invoice_number:fd.get('invoice_number')||'',invoice_file:invoiceFile?.name||'',bank_payment:fd.get('bank_payment')||'',items,description:items.map(x=>x.description).join(' · '),currency:items[0].currency,amount,paid,dueDate:fd.get('dueDate')||'',notes:fd.get('notes')||''};try{await addFinance('egypt_expenses',expense)}catch(err){notify('Could not save expense: '+err.message);return}form.reset();itemsBox.innerHTML='';addItem();modal.classList.remove('open');render();renderReconcile();notify('Expense saved');});
  document.querySelector('#expenseTable tbody')?.addEventListener('click',async e=>{const b=e.target.closest('.expense-delete');if(!b)return;const expense=get()[Number(b.dataset.i)];if(!expense||!confirm('Delete this expense for all users?'))return;const {error}=await db.from('egypt_expenses').delete().eq('id',expense.id);if(error)notify('Could not delete expense: '+error.message);else await loadFinance()});
  ['expenseFilterCurrency','expenseFilterSupplier','expenseFilterShipment','expenseFilterCategory','expenseFilterStatus','expenseFilterFrom','expenseFilterTo'].forEach(id=>document.getElementById(id)?.addEventListener('change',render));
  document.getElementById('expenseClearFilters')?.addEventListener('click',()=>{['expenseFilterCurrency','expenseFilterSupplier','expenseFilterShipment','expenseFilterCategory','expenseFilterStatus','expenseFilterFrom','expenseFilterTo'].forEach(id=>{const e=document.getElementById(id);if(e)e.value=''});render()});
@@ -1860,11 +1862,22 @@ document.getElementById('expenseAddBank')?.addEventListener('click',()=>{
  const KEY='aureaSalesCRMVisual';
  const stages=['Lead','Contact Made','Sample / Offer','Quotation Sent','Negotiation','Contract','Won','Lost'];
  const modal=document.getElementById('crmModal'),form=document.getElementById('crmForm'),board=document.getElementById('crmBoard');
- const db=window.aureaDb;let crmRows=[],crmReady=false;
+ const db=window.aureaDb;let crmRows=[],crmReady=false,customerProfiles=[];
  const get=()=>crmRows;
  async function loadCRM(){const {data:{session}}=await db.auth.getSession();if(!session){crmRows=[];crmReady=false;render();return}const {data,error}=await db.from('egypt_crm').select('id,data').limit(1000);if(error){notify('CRM sync failed: '+error.message);return}crmRows=(data||[]).map(x=>({...x.data,id:x.id}));crmReady=true;render()}
  async function saveCRM(x){if(!crmReady){notify('Wait for the CRM to load.');return false}const {error}=await db.from('egypt_crm').upsert({id:x.id,data:x,updated_at:new Date().toISOString()});if(error){notify('CRM was not saved: '+error.message);return false}await loadCRM();return true}
  db.auth.onAuthStateChange(()=>setTimeout(loadCRM,0));setTimeout(loadCRM,0);
+ async function refreshCustomers(){
+  const {data,error}=await db.from('egypt_profiles').select('id,company,country,contact,email,phone,data').order('company').limit(1000);
+  if(error){notify('Could not load registered customers: '+error.message);return}
+  customerProfiles=(data||[]).map(x=>({...x.data,...x,company:x.company,country:x.country||x.data?.country,contact:x.contact||x.data?.contact,email:x.email||x.data?.email,phone:x.phone||x.data?.phone}));
+  document.getElementById('crmCustomerList').innerHTML=customerProfiles.map(p=>`<option value="${esc(p.company)}"></option>`).join('');
+ }
+ function selectedCustomer(){const value=form.elements.company.value.trim().toLowerCase();return customerProfiles.find(p=>p.company?.trim().toLowerCase()===value)}
+ function applyCustomer(){const p=selectedCustomer();for(const key of ['country','contact','position','email','phone','whatsapp'])form.elements[key].value=p?String(p[key]||((key==='whatsapp')?p.phone:'')||''):'';document.getElementById('crmCustomerHint').textContent=p?'Customer details loaded from Users / Profiles.':'Select a registered company from the suggestions.';form.elements.company.setCustomValidity(p?'':'Select a registered company from Users / Profiles.');return p}
+ form.elements.company.addEventListener('input',applyCustomer);
+ form.elements.company.addEventListener('change',applyCustomer);
+ document.getElementById('crmAddCustomer').addEventListener('click',()=>{modal.classList.remove('open');document.querySelector('[data-view="profiles"]')?.click();document.querySelector('.profile-subtab[data-profile-tab="users"]')?.click();document.getElementById('newProfileBtn')?.click()});
  const money=(n,c='USD')=>`${c} ${Number(n||0).toLocaleString('en-US',{maximumFractionDigits:0})}`;
  const esc=x=>String(x??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
  function syncLists(){
@@ -1887,6 +1900,7 @@ document.getElementById('expenseAddBank')?.addEventListener('click',()=>{
       const value=(Number(x.quantity)||0)*(Number(x.targetPrice)||0),due=x.followup&&x.followup<=today&&!['Won','Lost'].includes(x.stage);
       return `<div class="crm-card" draggable="true" data-id="${x.id}">
        <div class="crm-card-top"><div><div class="crm-card-company">${esc(x.company)}</div><div class="crm-card-country">${esc(x.country)}${x.contact?' · '+esc(x.contact):''}</div></div><span class="crm-priority ${(x.priority||'Medium').toLowerCase()}"></span></div>
+       ${x.whatsapp||x.phone?`<div class="crm-card-country">WhatsApp: ${esc(x.whatsapp||x.phone)} <a href="https://wa.me/${String(x.whatsapp||x.phone).replace(/\D/g,'')}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation()">Open chat</a></div>`:''}
        <div class="crm-product">${esc(x.product)}</div><div class="crm-meta">${Number(x.quantity||0).toLocaleString('en-US')} MT${x.incoterm?' · '+esc(x.incoterm):''}${x.destination?' · '+esc(x.destination):''}</div>
        <div class="crm-value">${money(value,x.currency)}</div>
        <div class="crm-followup ${due?'due':''}"><span>${due?'⚠ ':''}Follow-up: ${x.followup||'Not scheduled'}</span><span>${esc(x.responsible||'')}</span></div>
@@ -1898,10 +1912,10 @@ document.getElementById('expenseAddBank')?.addEventListener('click',()=>{
   document.getElementById('crmActiveKpi').textContent=active.length;document.getElementById('crmQuotationKpi').textContent=quote;document.getElementById('crmNegotiationKpi').textContent=neg;document.getElementById('crmPipelineKpi').textContent=money(pipeline,'USD');document.getElementById('crmFollowupKpi').textContent=follow;document.getElementById('crmWonKpi').textContent=won;
   bindDrag();
  }
- function openForm(id=''){
-  syncLists();form.reset();form.elements.editId.value=id;document.getElementById('crmModalTitle').textContent=id?'Customer / Opportunity':'New Contact / Opportunity';
+ async function openForm(id=''){
+  await refreshCustomers();syncLists();form.reset();form.elements.editId.value=id;document.getElementById('crmModalTitle').textContent=id?'Customer / Opportunity':'New Contact / Opportunity';
   if(id){const x=get().find(y=>y.id===id);if(x)Object.keys(x).forEach(k=>{if(form.elements[k])form.elements[k].value=x[k]??''});form.elements.editId.value=id;}
-  modal.classList.add('open');
+  applyCustomer();modal.classList.add('open');
  }
  function bindDrag(){
   board.querySelectorAll('.crm-card').forEach(card=>card.addEventListener('dragstart',e=>e.dataTransfer.setData('text/plain',card.dataset.id)));
@@ -1915,7 +1929,7 @@ document.getElementById('expenseAddBank')?.addEventListener('click',()=>{
  document.querySelectorAll('.crmClose').forEach(b=>b.addEventListener('click',()=>modal.classList.remove('open')));
  ['crmSearch','crmResponsibleFilter','crmCountryFilter'].forEach(id=>document.getElementById(id)?.addEventListener('input',render));
  board?.addEventListener('click',async e=>{const o=e.target.closest('.crm-view'),d=e.target.closest('.crm-delete');if(o)openForm(o.dataset.id);if(d&&crmReady&&confirm('Delete this CRM opportunity for all users?')){const {error}=await db.from('egypt_crm').delete().eq('id',d.dataset.id);if(error)notify('Could not delete: '+error.message);else await loadCRM()}});
- form?.addEventListener('submit',async e=>{e.preventDefault();const fd=new FormData(form),id=fd.get('editId')||('crm-'+crypto.randomUUID()),x={id,company:fd.get('company'),country:fd.get('country'),contact:fd.get('contact')||'',position:fd.get('position')||'',email:fd.get('email')||'',phone:fd.get('phone')||'',product:fd.get('product'),quantity:Number(fd.get('quantity')||0),targetPrice:Number(fd.get('targetPrice')||0),currency:fd.get('currency'),incoterm:fd.get('incoterm'),destination:fd.get('destination')||'',stage:fd.get('stage'),priority:fd.get('priority'),lastContact:fd.get('lastContact')||'',followup:fd.get('followup')||'',responsible:fd.get('responsible')||'',source:fd.get('source')||'',notes:fd.get('notes')||''};if(await saveCRM(x)){modal.classList.remove('open');notify('Sales CRM updated for all users')};});
+ form?.addEventListener('submit',async e=>{e.preventDefault();const fd=new FormData(form),id=fd.get('editId')||('crm-'+crypto.randomUUID()),x={id,company:fd.get('company'),country:fd.get('country'),contact:fd.get('contact')||'',position:fd.get('position')||'',email:fd.get('email')||'',phone:customer.phone||'',whatsapp:customer.whatsapp||customer.phone||'',product:fd.get('product'),quantity:Number(fd.get('quantity')||0),targetPrice:Number(fd.get('targetPrice')||0),currency:fd.get('currency'),incoterm:fd.get('incoterm'),destination:fd.get('destination')||'',stage:fd.get('stage'),priority:fd.get('priority'),lastContact:fd.get('lastContact')||'',followup:fd.get('followup')||'',responsible:fd.get('responsible')||'',source:fd.get('source')||'',notes:fd.get('notes')||''};if(await saveCRM(x)){modal.classList.remove('open');notify('Sales CRM updated for all users')};});
  render();
 })();
 </script>
@@ -1923,6 +1937,7 @@ document.getElementById('expenseAddBank')?.addEventListener('click',()=>{
 <script>
 (function(){
   function getRegisteredProfiles(){
+    if(window.aureaSharedProfilesEnabled)return (window.aureaProfiles?.()||[]).map(p=>({company:p.company,role:p.type})).filter(p=>p.company&&p.role);
     const found = new Map();
 
     // Profiles already visible in Users / Profiles
@@ -2269,31 +2284,47 @@ document.getElementById('expenseAddBank')?.addEventListener('click',()=>{
   table.innerHTML=rows.map(x=>{let d=x.data||{};return `<tr data-profile-id="${esc(x.id)}"><td><b>${esc(d.company)}</b><br><span class="muted">${esc(d.address)}</span></td><td><span class="role">${esc(d.type)}</span></td><td>${esc(d.country)}</td><td>${esc(d.contact)}</td><td>${esc(d.email)}<br><span class="muted">${esc(d.phone)}</span></td><td>${esc(d.taxId||d.taxid)}</td><td><span class="status">${esc(d.status)}</span></td><td><button type="button" class="mini-btn profile-edit">Edit</button> <button type="button" class="mini-btn profile-delete">Delete</button></td></tr>`}).join('');
   document.getElementById('profileCount').textContent=rows.length;
   const list=document.getElementById('buyerList');if(list){list.innerHTML='';rows.forEach(x=>{const o=document.createElement('option');o.value=x.data.company;list.appendChild(o)})}
-  for(const id of ['buyerSearch','editSaleBuyer']){const el=document.getElementById(id);if(el&&typeof fillBuyerSelect==='function')fillBuyerSelect(el)}
+  for(const id of ['buyerSearch','editSaleBuyer']){const el=document.getElementById(id);if(el){const current=el.value;el.innerHTML='<option value="">Select Company / Location...</option>';rows.forEach(x=>{const o=document.createElement('option');o.value=x.data.company;o.textContent=x.data.company;el.appendChild(o)});el.value=current}}
   if(typeof fillShipmentPartySelects==='function')fillShipmentPartySelects();
   document.getElementById('profileSearch')?.dispatchEvent(new Event('input'));
  }
- async function load(){const {data:{session}}=await db.auth.getSession();if(!session)return;const {data,error:e}=await db.from('egypt_profiles').select('id,data').order('created_at',{ascending:true}).limit(1000);if(e){error(e);return}rows=data||[];render()}
+ async function load(){const {data:{session}}=await db.auth.getSession();if(!session){rows=[];render();return;}const {data,error:e}=await db.from('egypt_profiles').select('id,company,profile_type,country,contact,email,phone,tax_id,status,data').order('created_at',{ascending:true}).limit(1000);if(e){error(e);return}rows=(data||[]).map(x=>({...x,data:{...(x.data||{}),company:x.company||x.data?.company,type:x.profile_type||x.data?.type,country:x.country||x.data?.country,contact:x.contact||x.data?.contact,email:x.email||x.data?.email,phone:x.phone||x.data?.phone,taxId:x.tax_id||x.data?.taxId,status:x.status||x.data?.status}}));render()}
  window.aureaProfiles=()=>rows.map(x=>x.data);
  document.getElementById('newProfileBtn').addEventListener('click',()=>{delete form.dataset.sharedId;form.reset()},true);
  table.addEventListener('click',async e=>{
   const button=e.target.closest('.profile-edit,.profile-delete');if(!button)return;
   e.stopImmediatePropagation();e.preventDefault();
   const row=button.closest('tr'),item=rows.find(x=>x.id===row?.dataset.profileId);if(!item)return;
-  if(button.matches('.profile-edit')){form.reset();delete form.dataset.editing;form.dataset.sharedId=item.id;Object.entries(item.data).forEach(([k,v])=>{if(form.elements[k])form.elements[k].value=v??''});document.getElementById('profileModal').classList.add('open');return}
+  if(button.matches('.profile-edit')){form.reset();delete form.dataset.editing;form.dataset.sharedId=item.id;Object.entries(item.data).forEach(([k,v])=>{if(form.elements[k])form.elements[k].value=v??''});document.getElementById('profileModal').classList.add('open');document.getElementById('profileModal').removeAttribute('aria-hidden');form.querySelector('button[type=submit]').textContent='Save Profile';return}
   if(!confirm(`Delete ${item.data.company} for all users?`))return;
   const {error:deleteError}=await db.from('egypt_profiles').delete().eq('id',item.id);if(deleteError){error(deleteError);return}await load();
  },true);
+ const modal=document.getElementById('profileModal');
+ const submitButton=form.querySelector('button[type="submit"]');
+ function closeProfile(){modal.classList.remove('open');modal.setAttribute('aria-hidden','true');form.reset();delete form.dataset.sharedId;delete form.dataset.editing;}
+ document.getElementById('newProfileBtn').addEventListener('click',()=>{modal.removeAttribute('aria-hidden');submitButton.textContent='Create Profile'},true);
  form.addEventListener('submit',async e=>{
   e.preventDefault();e.stopImmediatePropagation();
+  if(submitButton.disabled)return;
   const data=Object.fromEntries(new FormData(form));delete data.edit_company;
   const id=form.dataset.sharedId;
-  const result=id?await db.from('egypt_profiles').update({data}).eq('id',id).select('id'):await db.from('egypt_profiles').insert({data}).select('id');
-  if(result.error){error(result.error);return}if(!result.data?.length){error(new Error('Save was not confirmed by the database'));return}
-  delete form.dataset.sharedId;delete form.dataset.editing;form.reset();document.getElementById('profileModal').classList.remove('open');await load();
+  const payload={company:String(data.company||'').trim(),profile_type:data.type||null,country:data.country||null,contact:data.contact||null,email:data.email||null,phone:data.phone||null,tax_id:data.taxId||null,status:data.status||null,data};
+  if(!payload.company){error(new Error('Company / Location name is required'));return}
+  const originalLabel=submitButton.textContent;
+  submitButton.disabled=true;submitButton.textContent='Saving...';
+  try{
+   const result=id?await db.from('egypt_profiles').update(payload).eq('id',id).select('id'):await db.from('egypt_profiles').insert(payload).select('id');
+   if(result.error)throw result.error;
+   if(!result.data?.length)throw new Error('Save was not confirmed by the database');
+   closeProfile();
+   if(typeof notify==='function')notify(`${payload.company} saved successfully`);
+   await load();
+  }catch(err){error(err)}
+  finally{submitButton.disabled=false;submitButton.textContent=modal.classList.contains('open')?originalLabel:'Create Profile'}
  },true);
  db.auth.onAuthStateChange(()=>setTimeout(load,0));setTimeout(load,0);
  window.addEventListener('focus',load);
+ setInterval(()=>{if(!document.hidden)load()},15000);
 })();
 </script>
 
@@ -2337,13 +2368,6 @@ document.getElementById('expenseAddBank')?.addEventListener('click',()=>{
 (function(){
  const form=document.getElementById('profileForm'), modal=document.getElementById('profileModal');
  if(!form||!modal)return;
- form.addEventListener('submit',function(){
-   if(form.dataset.editing)return;
-   setTimeout(function(){
-     modal.classList.remove('open');
-     modal.setAttribute('aria-hidden','true');
-   },0);
- },false);
  document.getElementById('newProfileBtn')?.addEventListener('click',()=>modal.removeAttribute('aria-hidden'));
 })();
 </script>
