@@ -2203,6 +2203,7 @@ document.getElementById('expenseAddBank')?.addEventListener('click',()=>{
     };
   }
   table.addEventListener('click',e=>{
+    if(window.aureaSharedProfilesEnabled)return;
     const row=e.target.closest('tbody tr');if(!row)return;
     if(e.target.closest('.profile-delete')){
       const d=rowData(row);
@@ -2253,6 +2254,48 @@ document.getElementById('expenseAddBank')?.addEventListener('click',()=>{
 })();
 </script>
 
+
+
+<script>
+/* Shared Users / Profiles: Supabase is the authoritative store. */
+(()=>{
+ const db=window.aureaDb, table=document.querySelector('#profileTable tbody'), form=document.getElementById('profileForm');
+ if(!db||!table||!form)return;
+ window.aureaSharedProfilesEnabled=true;
+ const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+ let rows=[];
+ const error=e=>{console.error(e);alert('Users / Profiles: '+(e.message||e));};
+ function render(){
+  table.innerHTML=rows.map(x=>{let d=x.data||{};return `<tr data-profile-id="${esc(x.id)}"><td><b>${esc(d.company)}</b><br><span class="muted">${esc(d.address)}</span></td><td><span class="role">${esc(d.type)}</span></td><td>${esc(d.country)}</td><td>${esc(d.contact)}</td><td>${esc(d.email)}<br><span class="muted">${esc(d.phone)}</span></td><td>${esc(d.taxId||d.taxid)}</td><td><span class="status">${esc(d.status)}</span></td><td><button type="button" class="mini-btn profile-edit">Edit</button> <button type="button" class="mini-btn profile-delete">Delete</button></td></tr>`}).join('');
+  document.getElementById('profileCount').textContent=rows.length;
+  const list=document.getElementById('buyerList');if(list){list.innerHTML='';rows.forEach(x=>{const o=document.createElement('option');o.value=x.data.company;list.appendChild(o)})}
+  for(const id of ['buyerSearch','editSaleBuyer']){const el=document.getElementById(id);if(el&&typeof fillBuyerSelect==='function')fillBuyerSelect(el)}
+  if(typeof fillShipmentPartySelects==='function')fillShipmentPartySelects();
+  document.getElementById('profileSearch')?.dispatchEvent(new Event('input'));
+ }
+ async function load(){const {data:{session}}=await db.auth.getSession();if(!session)return;const {data,error:e}=await db.from('egypt_profiles').select('id,data').order('created_at',{ascending:true}).limit(1000);if(e){error(e);return}rows=data||[];render()}
+ window.aureaProfiles=()=>rows.map(x=>x.data);
+ document.getElementById('newProfileBtn').addEventListener('click',()=>{delete form.dataset.sharedId;form.reset()},true);
+ table.addEventListener('click',async e=>{
+  const button=e.target.closest('.profile-edit,.profile-delete');if(!button)return;
+  e.stopImmediatePropagation();e.preventDefault();
+  const row=button.closest('tr'),item=rows.find(x=>x.id===row?.dataset.profileId);if(!item)return;
+  if(button.matches('.profile-edit')){form.reset();delete form.dataset.editing;form.dataset.sharedId=item.id;Object.entries(item.data).forEach(([k,v])=>{if(form.elements[k])form.elements[k].value=v??''});document.getElementById('profileModal').classList.add('open');return}
+  if(!confirm(`Delete ${item.data.company} for all users?`))return;
+  const {error:deleteError}=await db.from('egypt_profiles').delete().eq('id',item.id);if(deleteError){error(deleteError);return}await load();
+ },true);
+ form.addEventListener('submit',async e=>{
+  e.preventDefault();e.stopImmediatePropagation();
+  const data=Object.fromEntries(new FormData(form));delete data.edit_company;
+  const id=form.dataset.sharedId;
+  const result=id?await db.from('egypt_profiles').update({data}).eq('id',id).select('id'):await db.from('egypt_profiles').insert({data}).select('id');
+  if(result.error){error(result.error);return}if(!result.data?.length){error(new Error('Save was not confirmed by the database'));return}
+  delete form.dataset.sharedId;delete form.dataset.editing;form.reset();document.getElementById('profileModal').classList.remove('open');await load();
+ },true);
+ db.auth.onAuthStateChange(()=>setTimeout(load,0));setTimeout(load,0);
+ window.addEventListener('focus',load);
+})();
+</script>
 
 <script>
 (function(){
