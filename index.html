@@ -177,6 +177,19 @@
 .status-checks{display:grid;grid-template-columns:repeat(2,minmax(150px,1fr));gap:8px;padding:10px;border:1px solid var(--line);border-radius:9px;background:#fff}.status-checks label{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600;cursor:pointer}.status-checks input{width:auto!important;margin:0}.status-stack{display:flex;gap:4px;flex-wrap:wrap}.status-stack .status{margin:0}
 </style>
 <style>.originals-list>#shippingOriginalDocs,.originals-list>#insuranceDoc{display:contents}</style>
+
+<style>
+.crm-top-tabs{display:flex;gap:8px;margin:0 0 16px;border-bottom:1px solid var(--line);padding-bottom:10px}.crm-top-tab{border:1px solid var(--line);background:#fff;color:var(--ink);padding:10px 15px;border-radius:10px;cursor:pointer;font-weight:750}.crm-top-tab.active{background:var(--navy);border-color:var(--navy);color:#fff}.crm-product-form{display:grid;grid-template-columns:1.4fr .8fr .7fr .8fr .9fr 1fr auto;gap:9px;align-items:end}.crm-product-form input,.crm-product-form select{width:100%;border:1px solid var(--line);border-radius:9px;padding:10px;font:inherit}.crm-product-form label{display:grid;gap:5px;font-size:12px;font-weight:700}@media(max-width:1000px){.crm-product-form{grid-template-columns:1fr 1fr}.crm-product-form button{grid-column:1/-1}}
+</style>
+
+<style>
+.crm-sale-alert{margin:0 0 18px;padding:18px;border:1px solid #e4b657;background:linear-gradient(135deg,#fff8e7,#fffdf8);box-shadow:0 8px 24px rgba(193,123,25,.10)}
+.crm-sale-alert-head{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap}.crm-sale-alert-head h3{margin:6px 0 3px;font-size:20px;color:var(--navy)}.crm-sale-alert-head p{margin:0;color:var(--muted);font-size:13px}.crm-sale-alert-badge{display:inline-flex;background:#9d2f2f;color:#fff;padding:5px 9px;border-radius:999px;font-size:10px;font-weight:900;letter-spacing:.08em}.crm-sale-alert-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:10px;margin-top:14px}.crm-sale-product{border:1px solid #e3c980;border-left:5px solid #c89422;background:#fff;border-radius:11px;padding:13px}.crm-sale-product.urgent{border-color:#e1a2a2;border-left-color:#b83a3a;background:#fff8f8}.crm-sale-product.normal{border-left-color:#4c8b68}.crm-sale-product-top{display:flex;justify-content:space-between;gap:8px}.crm-sale-product h4{margin:0;color:var(--navy);font-size:14px}.crm-sale-product-price{font-size:17px;font-weight:900;margin:9px 0 5px}.crm-sale-product-meta{font-size:11px;color:var(--muted);line-height:1.55}.crm-sale-product-actions{display:flex;justify-content:space-between;align-items:center;margin-top:10px;padding-top:8px;border-top:1px solid #edf0f1}.crm-product-form{display:grid;grid-template-columns:repeat(4,minmax(130px,1fr));gap:10px;margin-top:15px;padding:14px;background:#fff;border:1px solid #ead8aa;border-radius:11px}.crm-product-form label{display:grid;gap:5px;font-size:11px;font-weight:800;color:var(--muted)}.crm-product-form input,.crm-product-form select{border:1px solid var(--line);border-radius:8px;padding:9px;font:inherit;color:var(--ink);background:#fff}.crm-product-form button{align-self:end}.crm-empty-sale{grid-column:1/-1;padding:14px;border:1px dashed #d9b46d;border-radius:10px;color:#8b6a26;background:#fff;text-align:center;font-size:12px}@media(max-width:900px){.crm-product-form{grid-template-columns:1fr 1fr}}@media(max-width:600px){.crm-product-form{grid-template-columns:1fr}}
+</style>
+
+<style>
+.crm-product-form .full{grid-column:1/-1}.crm-product-form textarea{width:100%;border:1px solid var(--line);border-radius:8px;padding:9px;font:inherit;min-height:76px;resize:vertical}.crm-product-photo-preview{width:100%;height:120px;object-fit:cover;border-radius:9px;border:1px solid var(--line);background:#f3f6f6}.crm-sale-product-photo{width:100%;height:130px;object-fit:cover;border-radius:8px;margin-bottom:10px;border:1px solid #edf0f1;background:#f3f6f6}.crm-product-specs{font-size:11px;line-height:1.5;margin-top:8px;padding:8px;background:#f8faf9;border-radius:8px;white-space:pre-line}.crm-product-task{margin-top:8px;padding:8px;border-radius:8px;background:#fff3df;border:1px solid #efd29e;font-size:11px;line-height:1.5}.crm-product-task.done{background:#eaf5f0;border-color:#b9ddcf}.crm-product-task-head{display:flex;justify-content:space-between;gap:8px;font-weight:800}.crm-product-task-actions{display:flex;gap:5px;margin-top:6px;flex-wrap:wrap}.crm-product-task-summary{margin-top:9px;font-size:11px;font-weight:800;color:#9a6112}.crm-product-task-summary.clear{color:var(--green)}
+</style>
 </head>
 <body>
 <div class="auth-gate" id="authGate">
@@ -421,6 +434,30 @@
     <button class="primary" id="crmAddBtn">+ New Contact / Opportunity</button>
   </div>
 
+  <div class="crm-sale-alert card">
+    <div class="crm-sale-alert-head">
+      <div><span class="crm-sale-alert-badge">⚠ SALES PRIORITY</span><h3>Products to Sell</h3><p>Available products that need active commercial follow-up.</p></div>
+      <button type="button" class="primary" id="crmToggleProductForm">+ Add Product for Sale</button>
+    </div>
+    <form id="crmProductForm" class="crm-product-form" style="display:none">
+      <label>Product<input name="product" required placeholder="Natural Sesame"></label>
+      <label>Origin<input name="origin" value="Brazil"></label>
+      <label>Currency<select name="currency"><option>USD</option><option>EUR</option><option>EGP</option></select></label>
+      <label>Price / MT<input name="price" type="number" min="0" step="0.01" required></label>
+      <label>Incoterm<select name="incoterm"><option>FOB</option><option>CFR</option><option>CIF</option><option>EXW</option><option>FCA</option><option>DAP</option></select></label>
+      <label>Availability<input name="availability" placeholder="500 MT / Sep 2026"></label>
+      <label>Priority<select name="priority"><option>Urgent</option><option selected>High</option><option>Normal</option></select></label>
+      <label>Product Photo<input name="photo" id="crmProductPhoto" type="file" accept="image/*"></label>
+      <label class="full">Product Specifications<textarea name="specifications" placeholder="Grade, purity, moisture, crop, packing, size, color, quality requirements..."></textarea></label>
+      <label class="full">First Sales Task<textarea name="task" placeholder="e.g. Send offer to Egyptian buyers"></textarea></label>
+      <label>Task Responsible<input name="taskResponsible" placeholder="Sales responsible"></label>
+      <label>Task Due Date<input name="taskDueDate" type="date"></label>
+      <label>Task Status<select name="taskStatus"><option>Pending</option><option>In Progress</option><option>Completed</option></select></label>
+      <button class="primary" type="submit">Save Product</button>
+    </form>
+    <div class="crm-sale-alert-grid" id="crmProductsBody"></div>
+  </div>
+
   <div class="crm-kpis">
     <div class="card kpi"><div class="kpi-head"><span>Active Leads</span></div><b id="crmActiveKpi">0</b><span class="trend">Open commercial contacts</span></div>
     <div class="card kpi"><div class="kpi-head"><span>Open Quotations</span></div><b id="crmQuotationKpi">0</b><span class="trend">Offers under discussion</span></div>
@@ -617,7 +654,12 @@
   </div>
 </div>
 <div class="modal" id="paymentModal" role="dialog" aria-modal="true"><div class="dialog"><div class="dialog-head"><div><h3>Record Payment</h3><span class="muted" id="paymentInvoiceLabel">Sales invoice</span></div><button class="close paymentClose" aria-label="Close">×</button></div><form id="paymentForm"><div class="form"><input type="hidden" name="invoice"><div class="field"><label>Payment date</label><input name="paymentDate" type="date" required></div><div class="field"><label>Payment amount (EGP)</label><input name="paymentAmount" type="number" min="0.01" step="0.01" required></div><div class="field full"><label>Payment bank</label><input name="paymentBank" required placeholder="Enter bank name"></div><div class="field full"><label>Current balance</label><input id="paymentBalance" readonly></div></div><div class="dialog-foot"><button type="button" class="secondary paymentCancel">Cancel</button><button type="submit" class="primary">Save Payment</button></div></form></div></div>
-<div class="modal" id="profileModal" role="dialog" aria-modal="true"><div class="dialog wide"><div class="dialog-head"><div><h3>New User / Profile</h3><span class="muted">Create a reusable company, location or operational contact</span></div><button class="close profileClose" aria-label="Close">×</button></div><form id="profileForm"><input type="hidden" name="edit_company" value=""><div class="form"><div class="field"><label>Profile type</label><select name="type" required><option>Administrator</option><option>Exporter</option><option>Importer</option><option>Notify</option><option>Consignee</option><option>Port / Terminal / Location</option><option>Fumigation Company</option></select></div><div class="field"><label>Status</label><select name="status"><option>Active</option><option>Inactive</option></select></div><div class="field"><label>Company / Location name</label><input name="company" required></div><div class="field"><label>Country</label><input name="country" required></div><div class="field full"><label>Address</label><input name="address" required></div><div class="field"><label>Email</label><input name="email" type="email"></div><div class="field"><label>Phone</label><input name="phone"></div><div class="field"><label>Tax ID / Registration</label><input name="taxId"></div><div class="field"><label>Contact name</label><input name="contact"></div><div class="field"><label>Position</label><input name="position"></div><div class="field"><label>WhatsApp</label><input name="whatsapp" type="tel" placeholder="+20 10 1234 5678"></div></div><div class="dialog-foot"><button type="button" class="secondary profileCancel">Cancel</button><button type="submit" class="primary">Create Profile</button></div></form></div></div>
+<div class="modal" id="profileModal" role="dialog" aria-modal="true"><div class="dialog wide"><div class="dialog-head"><div><h3>New User / Profile</h3><span class="muted">Create a reusable company, location or operational contact</span></div><button class="close profileClose" aria-label="Close">×</button></div><form id="profileForm"><input type="hidden" name="edit_company" value=""><div class="form"><div class="field"><label>Profile type</label><select name="type" required><option>Administrator</option><option>Exporter</option><option>Importer</option><option>Notify</option><option>Consignee</option><option>Port / Terminal / Location</option><option>Fumigation Company</option></select></div><div class="field"><label>Status</label><select name="status"><option>Active</option><option>Inactive</option></select></div><div class="field"><label>Company / Location name</label><input name="company" required></div><div class="field"><label>Country</label><input name="country" required></div><div class="field full"><label>Address</label><input name="address" required></div><div class="field"><label>Email</label><input name="email" type="email"></div><div class="field"><label>Phone</label><input name="phone"></div><div class="field"><label>Tax ID / Registration</label><input name="taxId"></div><div class="field"><label>Contact name</label><input name="contact"></div><div class="field"><label>Position</label><input name="position"></div><div class="field"><label>WhatsApp</label><input name="whatsapp" type="tel" placeholder="+20 10 1234 5678"></div><div class="field full">
+  <label>Additional Contacts / WhatsApp</label>
+  <div id="additionalContacts" style="display:grid;gap:8px;margin-top:4px"></div>
+  <button type="button" class="secondary" id="addAdditionalContact" style="margin-top:8px;width:max-content">+ Add Contact</button>
+  <span class="muted">Add more people from the same company. Each contact can have its own WhatsApp number.</span>
+</div></div><div class="dialog-foot"><button type="button" class="secondary profileCancel">Cancel</button><button type="submit" class="primary">Create Profile</button></div></form></div></div>
 <div class="toast" id="toast">Registro salvo com sucesso.</div>
 
 
@@ -662,7 +704,7 @@
 <div class="field"><label>WhatsApp</label><input name="whatsapp" readonly></div>
 </div></div>
 <div class="crm-form-section"><h4>Commercial Opportunity</h4><div class="form">
-<div class="field"><label>Product</label><input name="product" required placeholder="Sesame, beans, popcorn..."></div>
+<div class="field"><label>Product</label><input name="product" list="crmProductsList" required placeholder="Select or type product"><datalist id="crmProductsList"></datalist></div>
 <div class="field"><label>Quantity (MT)</label><input name="quantity" type="number" min="0" step="0.01"></div>
 <div class="field"><label>Price / MT</label><input name="targetPrice" type="number" min="0" step="0.01"></div>
 <div class="field"><label>Currency</label><select name="currency"><option>USD</option><option>EUR</option><option>EGP</option></select></div>
@@ -977,6 +1019,32 @@ initImportStageTabs();
 
 
 
+
+
+
+
+
+
+
+
+<script>
+(function(){
+ const f=document.getElementById('profileForm'),box=document.getElementById('additionalContacts'),add=document.getElementById('addAdditionalContact');
+ if(!f||!box||!add)return;
+ let h=f.querySelector('[name="additional_contacts_json"]');if(!h){h=document.createElement('input');h.type='hidden';h.name='additional_contacts_json';f.appendChild(h)}
+ const parse=v=>{try{let a=Array.isArray(v)?v:JSON.parse(v||'[]');return Array.isArray(a)?a:[]}catch(_){return[]}};
+ const esc=v=>String(v||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+ function row(x={}){let r=document.createElement('div');r.className='additional-contact-row';r.style.cssText='display:grid;grid-template-columns:1fr 1fr auto;gap:8px;align-items:end';r.innerHTML=`<div class="field"><label>Contact Name</label><input class="acn" value="${esc(x.name)}"></div><div class="field"><label>WhatsApp</label><input class="acw" value="${esc(x.whatsapp)}" placeholder="+20..."></div><button type="button" class="mini-btn acr">Remove</button>`;box.appendChild(r)}
+ function collect(){let a=[...box.children].map(r=>({name:r.querySelector('.acn')?.value.trim()||'',whatsapp:r.querySelector('.acw')?.value.trim()||''})).filter(x=>x.name||x.whatsapp);h.value=JSON.stringify(a);return a}
+ function show(a){box.innerHTML='';parse(a).forEach(row);h.value=JSON.stringify(parse(a))}
+ add.onclick=()=>row();box.addEventListener('input',collect);box.addEventListener('click',e=>{if(e.target.closest('.acr')){e.target.closest('.additional-contact-row').remove();collect()}});
+ f.addEventListener('submit',collect,true);
+ document.getElementById('newProfileBtn')?.addEventListener('click',()=>setTimeout(()=>show([]),0),true);
+ document.querySelector('#profileTable tbody')?.addEventListener('click',e=>{if(e.target.closest('.profile-edit'))setTimeout(()=>{let c=f.elements.company?.value.trim(),p=(window.aureaProfiles?.()||[]).find(x=>String(x.company||'').trim()===c);show(p?.additional_contacts_json||'[]')},150)},true);
+ window.aureaAdditionalContacts={parse,collect,show};
+})();
+</script>
+
 </body></html>`);w.document.close();toggleModal(draftModal,false);setTimeout(()=>w.print(),400)};
   document.getElementById('refreshFx').onclick=async()=>{const btn=document.getElementById('refreshFx');btn.disabled=true;btn.textContent='Refreshing…';try{const res=await fetch('https://www.banquemisr.com/Home/CAPITAL%20MARKETS/Exchange%20Rates%20and%20Currencies');const html=await res.text();const plain=html.replace(/<[^>]+>/g,' ').replace(/\s+/g,' ');const match=plain.match(/US Dollar\s+(\d+\.\d+)\s+(\d+\.\d+)/i);if(match){document.querySelector('.fx-rate b').textContent=`Buy ${match[1]} · Sell ${match[2]} EGP`;document.querySelector('.fx-rate small:last-child').textContent=`Retrieved ${new Date().toLocaleString('en-GB')}`;notify('Banque Misr USD rate updated')}else throw Error('Rate not found')}catch(err){notify('Live retrieval was blocked. Open the official Banque Misr source to verify the rate.')}finally{btn.disabled=false;btn.textContent='↻ Refresh rate'}};
   const saleModal=document.getElementById('saleModal'),paymentModal=document.getElementById('paymentModal'),profileModal=document.getElementById('profileModal');
@@ -1203,7 +1271,10 @@ document.getElementById('editSaleAddBuyer')?.addEventListener('click',addBuyerFr
 <style>
 .status-checks{display:grid;grid-template-columns:repeat(2,minmax(150px,1fr));gap:8px;padding:10px;border:1px solid var(--line);border-radius:9px;background:#fff}.status-checks label{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600;cursor:pointer}.status-checks input{width:auto!important;margin:0}.status-stack{display:flex;gap:4px;flex-wrap:wrap}.status-stack .status{margin:0}
 </style>
-</head><body><header><b>AUREA EGYPT · SALES INVOICE</b><h1>${safe(row.dataset.invoice)}</h1><span class="muted">Invoice date: ${safe(row.dataset.date)}</span></header><section><div class="box"><b>SELLER</b><p>${safe(seller)}</p><span>Egypt</span></div><div class="box"><b>BUYER</b><p>${safe(row.dataset.buyer)}</p><span>Buyer selected from Users / Profiles</span></div></section><table><thead><tr><th>Product</th><th>Lot</th><th>Shipment Reference</th><th>Plate Truck</th><th>Weight</th><th>Unit Price</th><th>Total</th></tr></thead><tbody><tr><td>${safe(row.dataset.product)}</td><td>${safe(row.dataset.lot)}</td><td>${safe(row.dataset.reference)}</td><td>${safe(row.dataset.plateTruck||'—')}</td><td>${Number(row.dataset.quantity).toLocaleString('en-US')} kg</td><td>EGP ${money(row.dataset.unitPrice)} / kg</td><td>EGP ${money(total)}</td></tr></tbody></table><div class="total">TOTAL: EGP ${money(total)}</div><p class="muted" style="text-align:right">Paid: EGP ${money(paid)} · Balance: EGP ${money(total-paid)}</p><h3>Payment records</h3><table><thead><tr><th>Date</th><th>Bank</th><th>Amount</th><th>Balance after payment</th></tr></thead><tbody>${paymentRows}</tbody></table><button onclick="window.print()" style="margin-top:24px;padding:10px 18px">Print / Save as PDF</button></body></html>`);w.document.close();setTimeout(()=>w.print(),350)}
+</head><body><header><b>AUREA EGYPT · SALES INVOICE</b><h1>${safe(row.dataset.invoice)}</h1><span class="muted">Invoice date: ${safe(row.dataset.date)}</span></header><section><div class="box"><b>SELLER</b><p>${safe(seller)}</p><span>Egypt</span></div><div class="box"><b>BUYER</b><p>${safe(row.dataset.buyer)}</p><span>Buyer selected from Users / Profiles</span></div></section><table><thead><tr><th>Product</th><th>Lot</th><th>Shipment Reference</th><th>Plate Truck</th><th>Weight</th><th>Unit Price</th><th>Total</th></tr></thead><tbody><tr><td>${safe(row.dataset.product)}</td><td>${safe(row.dataset.lot)}</td><td>${safe(row.dataset.reference)}</td><td>${safe(row.dataset.plateTruck||'—')}</td><td>${Number(row.dataset.quantity).toLocaleString('en-US')} kg</td><td>EGP ${money(row.dataset.unitPrice)} / kg</td><td>EGP ${money(total)}</td></tr></tbody></table><div class="total">TOTAL: EGP ${money(total)}</div><p class="muted" style="text-align:right">Paid: EGP ${money(paid)} · Balance: EGP ${money(total-paid)}</p><h3>Payment records</h3><table><thead><tr><th>Date</th><th>Bank</th><th>Amount</th><th>Balance after payment</th></tr></thead><tbody>${paymentRows}</tbody></table><button onclick="window.print()" style="margin-top:24px;padding:10px 18px">Print / Save as PDF</button>
+
+
+</body></html>`);w.document.close();setTimeout(()=>w.print(),350)}
   document.getElementById('salesTable').onclick=e=>{
     const row=e.target.closest('tr');
     if(!row||!row.dataset.invoice)return;
@@ -1824,7 +1895,7 @@ document.getElementById('expenseAddBank')?.addEventListener('click',()=>{
  }
  function render(){
  fillExpenseFilters();const rows=filteredExpenses(),tb=document.querySelector('#expenseTable tbody');if(!tb)return;tb.innerHTML='';
- rows.forEach(x=>{const bal=Math.max(0,(+x.amount||0)-(+x.paid||0));const tr=document.createElement('tr');tr.innerHTML=`<td>${x.date||''}</td><td><b>${x.shipment||'—'}</b></td><td>${x.category||''}</td><td>${x.description||''}</td><td>${x.supplier||'—'}</td><td>${x.invoice_number||'—'}</td><td>${x.invoice_file||'—'}</td><td>${x.bank_payment||'—'}</td><td>${x.currency||'EGP'}</td><td>${money(x.amount,x.currency)}</td><td>${money(x.paid,x.currency)}</td><td><b>${money(bal,x.currency)}</b></td><td><span class="status ${bal>0?'amber':''}">${bal>0?'Payable':'Paid'}</span></td><td><button class="mini-btn expense-delete" data-i="${x._i}">Delete</button></td>`;tb.appendChild(tr)});
+ rows.forEach(x=>{const bal=Math.max(0,(+x.amount||0)-(+x.paid||0));const tr=document.createElement('tr');const fileCell=x.invoice_file_data?`<div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap"><span title="${esc(x.invoice_file||'Invoice file')}">📎 ${esc(x.invoice_file||'Invoice')}</span><button type="button" class="mini-btn expense-file-view" data-i="${x._i}">View</button><button type="button" class="mini-btn expense-file-download" data-i="${x._i}">Download</button></div>`:(x.invoice_file?`<span title="Legacy record: file content was not stored">📎 ${esc(x.invoice_file)} <small class="muted">(name only)</small></span>`:'—');tr.innerHTML=`<td>${x.date||''}</td><td><b>${x.shipment||'—'}</b></td><td>${x.category||''}</td><td>${x.description||''}</td><td>${x.supplier||'—'}</td><td>${x.invoice_number||'—'}</td><td>${fileCell}</td><td>${x.bank_payment||'—'}</td><td>${x.currency||'EGP'}</td><td>${money(x.amount,x.currency)}</td><td>${money(x.paid,x.currency)}</td><td><b>${money(bal,x.currency)}</b></td><td><span class="status ${bal>0?'amber':''}">${bal>0?'Payable':'Paid'}</span></td><td><button class="mini-btn expense-delete" data-i="${x._i}">Delete</button></td>`;tb.appendChild(tr)});
  if(!rows.length)tb.innerHTML='<tr><td colspan="14" class="muted" style="text-align:center;padding:20px">No expenses found.</td></tr>';
  document.getElementById('expenseTotal').innerHTML=sumCurrencies(rows,'total');document.getElementById('expensePaid').innerHTML=sumCurrencies(rows,'paid');document.getElementById('expensePayable').innerHTML=sumCurrencies(rows,'payable');
  }
@@ -1844,14 +1915,18 @@ document.getElementById('expenseAddBank')?.addEventListener('click',()=>{
  document.getElementById('clearBankStatement').onclick=async()=>{if(!confirm('Clear statement lines and reconciliations for all users?'))return;try{const {error}=await db.from('egypt_statement_lines').delete().in('id',statementLines.map(x=>x.id));if(error)throw error;await loadFinance()}catch(err){notify('Could not clear statement: '+err.message)}};renderReconcile();
  document.getElementById('expenseAddBtn')?.addEventListener('click',()=>{syncShipments();syncExpenseSuppliers();syncExpenseBanks();modal.classList.add('open')});
  document.querySelectorAll('.expenseClose').forEach(b=>b.addEventListener('click',()=>modal.classList.remove('open')));
- form?.addEventListener('submit',async e=>{e.preventDefault();const customer=applyCustomer();if(!customer){form.elements.company.reportValidity();return}const fd=new FormData(form),items=[...itemsBox.querySelectorAll('.expense-item')].map(r=>({description:r.querySelector('[name=itemDescription]').value.trim(),category:r.querySelector('[name=itemCategory]').value,currency:r.querySelector('[name=itemCurrency]').value,amount:Number(r.querySelector('[name=itemAmount]').value)}));if(!items.length||items.some(x=>!x.description||!Number.isFinite(x.amount)||x.amount<=0)){notify('Fill in the description and positive amount for every item.');return}if(new Set(items.map(x=>x.currency)).size>1){notify('Select the same currency on every line before saving.');return}const amount=items.reduce((sum,x)=>sum+x.amount,0),paid=Number(fd.get('paid')||0);if(!Number.isFinite(paid)||paid<0||paid>amount){notify('Paid amount must not exceed the total.');return}const rows=get(),selectedShipments=[...form.querySelectorAll('input[name="shipment_check"]:checked')].map(x=>x.value),invoiceFile=form.querySelector('[name="invoice_file"]')?.files?.[0];const expense={id:crypto.randomUUID(),date:fd.get('date'),shipment:selectedShipments.join(', '),shipments:selectedShipments,category:[...new Set(items.map(x=>x.category))].join(', '),supplier:fd.get('supplier')||'',invoice_number:fd.get('invoice_number')||'',invoice_file:invoiceFile?.name||'',bank_payment:fd.get('bank_payment')||'',items,description:items.map(x=>x.description).join(' · '),currency:items[0].currency,amount,paid,dueDate:fd.get('dueDate')||'',notes:fd.get('notes')||''};try{await addFinance('egypt_expenses',expense)}catch(err){notify('Could not save expense: '+err.message);return}form.reset();itemsBox.innerHTML='';addItem();modal.classList.remove('open');render();renderReconcile();notify('Expense saved');});
- document.querySelector('#expenseTable tbody')?.addEventListener('click',async e=>{const b=e.target.closest('.expense-delete');if(!b)return;const expense=get()[Number(b.dataset.i)];if(!expense||!confirm('Delete this expense for all users?'))return;const {error}=await db.from('egypt_expenses').delete().eq('id',expense.id);if(error)notify('Could not delete expense: '+error.message);else await loadFinance()});
+ const fileToDataURL=file=>new Promise((resolve,reject)=>{if(!file||!file.name)return resolve('');const r=new FileReader();r.onload=()=>resolve(String(r.result||''));r.onerror=()=>reject(new Error('Could not read Invoice File'));r.readAsDataURL(file)});
+ form?.addEventListener('submit',async e=>{e.preventDefault();const fd=new FormData(form);if(!fd.get('supplier')){notify('Select a Supplier in Users / Profiles.');form.elements.supplier?.focus();return}const items=[...itemsBox.querySelectorAll('.expense-item')].map(r=>({description:r.querySelector('[name=itemDescription]').value.trim(),category:r.querySelector('[name=itemCategory]').value,currency:r.querySelector('[name=itemCurrency]').value,amount:Number(r.querySelector('[name=itemAmount]').value)}));if(!items.length||items.some(x=>!x.description||!Number.isFinite(x.amount)||x.amount<=0)){notify('Fill in the description and positive amount for every item.');return}if(new Set(items.map(x=>x.currency)).size>1){notify('Select the same currency on every line before saving.');return}const amount=items.reduce((sum,x)=>sum+x.amount,0),paid=Number(fd.get('paid')||0);if(!Number.isFinite(paid)||paid<0||paid>amount){notify('Paid amount must not exceed the total.');return}const rows=get(),selectedShipments=[...form.querySelectorAll('input[name="shipment_check"]:checked')].map(x=>x.value),invoiceFile=form.querySelector('[name="invoice_file"]')?.files?.[0];if(invoiceFile&&invoiceFile.size>8*1024*1024){notify('Invoice File is too large. Maximum 8 MB.');return}let invoiceFileData='';try{invoiceFileData=await fileToDataURL(invoiceFile)}catch(err){notify(err.message);return}const expense={id:crypto.randomUUID(),date:fd.get('date'),shipment:selectedShipments.join(', '),shipments:selectedShipments,category:[...new Set(items.map(x=>x.category))].join(', '),supplier:fd.get('supplier')||'',invoice_number:fd.get('invoice_number')||'',invoice_file:invoiceFile?.name||'',invoice_file_type:invoiceFile?.type||'',invoice_file_data:invoiceFileData,bank_payment:fd.get('bank_payment')||'',items,description:items.map(x=>x.description).join(' · '),currency:items[0].currency,amount,paid,dueDate:fd.get('dueDate')||'',notes:fd.get('notes')||''};try{await addFinance('egypt_expenses',expense)}catch(err){notify('Could not save expense: '+err.message);return}form.reset();itemsBox.innerHTML='';addItem();modal.classList.remove('open');render();renderReconcile();notify('Expense saved');});
+ document.querySelector('#expenseTable tbody')?.addEventListener('click',async e=>{const view=e.target.closest('.expense-file-view'),download=e.target.closest('.expense-file-download');if(view||download){const expense=get()[Number((view||download).dataset.i)];if(!expense?.invoice_file_data){notify('This older expense only stored the file name. Reattach the invoice to enable View / Download.');return}if(view){const w=window.open(expense.invoice_file_data,'_blank','noopener');if(!w)notify('Allow pop-ups to view the Invoice File.');return}const a=document.createElement('a');a.href=expense.invoice_file_data;a.download=expense.invoice_file||'invoice-file';document.body.appendChild(a);a.click();a.remove();return}const b=e.target.closest('.expense-delete');if(!b)return;const expense=get()[Number(b.dataset.i)];if(!expense||!confirm('Delete this expense for all users?'))return;const {error}=await db.from('egypt_expenses').delete().eq('id',expense.id);if(error)notify('Could not delete expense: '+error.message);else await loadFinance()});
  ['expenseFilterCurrency','expenseFilterSupplier','expenseFilterShipment','expenseFilterCategory','expenseFilterStatus','expenseFilterFrom','expenseFilterTo'].forEach(id=>document.getElementById(id)?.addEventListener('change',render));
  document.getElementById('expenseClearFilters')?.addEventListener('click',()=>{['expenseFilterCurrency','expenseFilterSupplier','expenseFilterShipment','expenseFilterCategory','expenseFilterStatus','expenseFilterFrom','expenseFilterTo'].forEach(id=>{const e=document.getElementById(id);if(e)e.value=''});render()});
  document.getElementById('expensePdfBtn')?.addEventListener('click',()=>{
   const rows=filteredExpenses(),w=window.open('','_blank');if(!w){notify('Allow pop-ups to generate PDF.');return}
   const sum=t=>{const a={};rows.forEach(x=>{const c=x.currency||'EGP',am=+x.amount||0,p=+x.paid||0,n=t==='total'?am:t==='paid'?p:Math.max(0,am-p);a[c]=(a[c]||0)+n});return Object.entries(a).map(([c,n])=>`${c} ${n.toFixed(2)}`).join(' | ')||'—'};
-  w.document.write(`<!doctype html><html><head><title>Expenses Report</title><style>body{font-family:Arial;padding:28px;color:#111}.summary{display:flex;gap:12px;margin:18px 0}.box{border:1px solid #bbb;padding:10px;flex:1}table{width:100%;border-collapse:collapse;font-size:10px}th,td{border:1px solid #bbb;padding:5px}th{background:#eee}</style></head><body><h1>Expenses / Financial Cash Control</h1><div class="summary"><div class="box"><b>Total Expenses</b><br>${sum('total')}</div><div class="box"><b>Paid</b><br>${sum('paid')}</div><div class="box"><b>Payable</b><br>${sum('payable')}</div></div><table><thead><tr><th>Date</th><th>Shipment</th><th>Category</th><th>Description</th><th>Supplier</th><th>Invoice / NF</th><th>Invoice File</th><th>Bank Payment</th><th>Currency</th><th>Amount</th><th>Paid</th><th>Balance</th><th>Status</th></tr></thead><tbody>${rows.map(x=>{const b=Math.max(0,(+x.amount||0)-(+x.paid||0));return `<tr><td>${x.date||''}</td><td>${x.shipment||'—'}</td><td>${x.category||''}</td><td>${x.description||''}</td><td>${x.supplier||'—'}</td><td>${x.invoice_number||'—'}</td><td>${x.invoice_file||'—'}</td><td>${x.bank_payment||'—'}</td><td>${x.currency||'EGP'}</td><td>${(+x.amount||0).toFixed(2)}</td><td>${(+x.paid||0).toFixed(2)}</td><td>${b.toFixed(2)}</td><td>${b>0?'Payable':'Paid'}</td></tr>`}).join('')}</tbody></table><script>window.onload=()=>window.print()<\/script></body></html>`);w.document.close();
+  w.document.write(`<!doctype html><html><head><title>Expenses Report</title><style>body{font-family:Arial;padding:28px;color:#111}.summary{display:flex;gap:12px;margin:18px 0}.box{border:1px solid #bbb;padding:10px;flex:1}table{width:100%;border-collapse:collapse;font-size:10px}th,td{border:1px solid #bbb;padding:5px}th{background:#eee}</style></head><body><h1>Expenses / Financial Cash Control</h1><div class="summary"><div class="box"><b>Total Expenses</b><br>${sum('total')}</div><div class="box"><b>Paid</b><br>${sum('paid')}</div><div class="box"><b>Payable</b><br>${sum('payable')}</div></div><table><thead><tr><th>Date</th><th>Shipment</th><th>Category</th><th>Description</th><th>Supplier</th><th>Invoice / NF</th><th>Invoice File</th><th>Bank Payment</th><th>Currency</th><th>Amount</th><th>Paid</th><th>Balance</th><th>Status</th></tr></thead><tbody>${rows.map(x=>{const b=Math.max(0,(+x.amount||0)-(+x.paid||0));return `<tr><td>${x.date||''}</td><td>${x.shipment||'—'}</td><td>${x.category||''}</td><td>${x.description||''}</td><td>${x.supplier||'—'}</td><td>${x.invoice_number||'—'}</td><td>${x.invoice_file||'—'}</td><td>${x.bank_payment||'—'}</td><td>${x.currency||'EGP'}</td><td>${(+x.amount||0).toFixed(2)}</td><td>${(+x.paid||0).toFixed(2)}</td><td>${b.toFixed(2)}</td><td>${b>0?'Payable':'Paid'}</td></tr>`}).join('')}</tbody></table><script>window.onload=()=>window.print()<\/script>
+
+
+</body></html>`);w.document.close();
  });
  render();
 })();
@@ -1929,7 +2004,7 @@ document.getElementById('expenseAddBank')?.addEventListener('click',()=>{
  document.querySelectorAll('.crmClose').forEach(b=>b.addEventListener('click',()=>modal.classList.remove('open')));
  ['crmSearch','crmResponsibleFilter','crmCountryFilter'].forEach(id=>document.getElementById(id)?.addEventListener('input',render));
  board?.addEventListener('click',async e=>{const o=e.target.closest('.crm-view'),d=e.target.closest('.crm-delete');if(o)openForm(o.dataset.id);if(d&&crmReady&&confirm('Delete this CRM opportunity for all users?')){const {error}=await db.from('egypt_crm').delete().eq('id',d.dataset.id);if(error)notify('Could not delete: '+error.message);else await loadCRM()}});
- form?.addEventListener('submit',async e=>{e.preventDefault();const fd=new FormData(form),id=fd.get('editId')||('crm-'+crypto.randomUUID()),x={id,company:fd.get('company'),country:fd.get('country'),contact:fd.get('contact')||'',position:fd.get('position')||'',email:fd.get('email')||'',phone:customer.phone||'',whatsapp:customer.whatsapp||customer.phone||'',product:fd.get('product'),quantity:Number(fd.get('quantity')||0),targetPrice:Number(fd.get('targetPrice')||0),currency:fd.get('currency'),incoterm:fd.get('incoterm'),destination:fd.get('destination')||'',stage:fd.get('stage'),priority:fd.get('priority'),lastContact:fd.get('lastContact')||'',followup:fd.get('followup')||'',responsible:fd.get('responsible')||'',source:fd.get('source')||'',notes:fd.get('notes')||''};if(await saveCRM(x)){modal.classList.remove('open');notify('Sales CRM updated for all users')};});
+ form?.addEventListener('submit',async e=>{e.preventDefault();const customer=applyCustomer();if(!customer){form.elements.company.reportValidity();return}const fd=new FormData(form),id=fd.get('editId')||('crm-'+crypto.randomUUID()),x={id,company:fd.get('company'),country:fd.get('country'),contact:fd.get('contact')||'',position:fd.get('position')||'',email:fd.get('email')||'',phone:customer.phone||'',whatsapp:customer.whatsapp||customer.phone||'',product:fd.get('product'),quantity:Number(fd.get('quantity')||0),targetPrice:Number(fd.get('targetPrice')||0),currency:fd.get('currency'),incoterm:fd.get('incoterm'),destination:fd.get('destination')||'',stage:fd.get('stage'),priority:fd.get('priority'),lastContact:fd.get('lastContact')||'',followup:fd.get('followup')||'',responsible:fd.get('responsible')||'',source:fd.get('source')||'',notes:fd.get('notes')||''};if(await saveCRM(x)){modal.classList.remove('open');notify('Sales CRM updated for all users')};});
  render();
 })();
 </script>
@@ -2176,7 +2251,10 @@ document.getElementById('expenseAddBank')?.addEventListener('click',()=>{
  });
  document.getElementById('costSimPdf')?.addEventListener('click',()=>{
    const r=calc(),w=window.open('','_blank');if(!w){alert('Allow pop-ups to generate PDF.');return}
-   w.document.write(`<!doctype html><html><head><title>Egypt Import Cost Simulation</title><style>body{font-family:Arial;padding:28px}table{width:100%;border-collapse:collapse}th,td{border:1px solid #bbb;padding:7px;text-align:left}th{background:#eee}.sum{margin:18px 0;font-size:18px}</style></head><body><h1>Egypt Import Cost Simulator</h1><p>Estimated import landed-cost simulation.</p><table><thead><tr><th>Cost Component</th><th>EGP</th></tr></thead><tbody>${r.rows.map(x=>`<tr><td>${x[0]}</td><td>${egp(x[1])}</td></tr>`).join('')}</tbody></table><div class="sum"><b>Total Import Cost: ${egp(r.total)}</b><br><b>Cost / MT: ${egp(r.qty?r.total/r.qty:0)}</b></div><p style="font-size:11px">Simulation only. Customs and tax rates must be confirmed according to HS code, origin, valuation and current Egyptian requirements.</p><script>window.onload=()=>window.print()<\/script></body></html>`);w.document.close();
+   w.document.write(`<!doctype html><html><head><title>Egypt Import Cost Simulation</title><style>body{font-family:Arial;padding:28px}table{width:100%;border-collapse:collapse}th,td{border:1px solid #bbb;padding:7px;text-align:left}th{background:#eee}.sum{margin:18px 0;font-size:18px}</style></head><body><h1>Egypt Import Cost Simulator</h1><p>Estimated import landed-cost simulation.</p><table><thead><tr><th>Cost Component</th><th>EGP</th></tr></thead><tbody>${r.rows.map(x=>`<tr><td>${x[0]}</td><td>${egp(x[1])}</td></tr>`).join('')}</tbody></table><div class="sum"><b>Total Import Cost: ${egp(r.total)}</b><br><b>Cost / MT: ${egp(r.qty?r.total/r.qty:0)}</b></div><p style="font-size:11px">Simulation only. Customs and tax rates must be confirmed according to HS code, origin, valuation and current Egyptian requirements.</p><script>window.onload=()=>window.print()<\/script>
+
+
+</body></html>`);w.document.close();
  });
  calc();
 })();
@@ -2288,7 +2366,7 @@ document.getElementById('expenseAddBank')?.addEventListener('click',()=>{
   if(typeof fillShipmentPartySelects==='function')fillShipmentPartySelects();
   document.getElementById('profileSearch')?.dispatchEvent(new Event('input'));
  }
- async function load(){const {data:{session}}=await db.auth.getSession();if(!session){rows=[];render();return;}const {data,error:e}=await db.from('egypt_profiles').select('id,company,profile_type,country,contact,email,phone,tax_id,status,data').order('created_at',{ascending:true}).limit(1000);if(e){error(e);return}rows=(data||[]).map(x=>({...x,data:{...(x.data||{}),company:x.company||x.data?.company,type:x.profile_type||x.data?.type,country:x.country||x.data?.country,contact:x.contact||x.data?.contact,email:x.email||x.data?.email,phone:x.phone||x.data?.phone,taxId:x.tax_id||x.data?.taxId,status:x.status||x.data?.status}}));render()}
+ async function load(){const {data:{session}}=await db.auth.getSession();if(!session){rows=[];render();return;}const {data,error:e}=await db.from('egypt_profiles').select('id,company,profile_type,country,contact,email,phone,tax_id,status,data').order('created_at',{ascending:true}).limit(1000);if(e){error(e);return}rows=(data||[]).map(x=>({...x,data:{...(x.data||{}),company:x.company||x.data?.company,type:x.profile_type||x.data?.type,country:x.country||x.data?.country,contact:x.contact||x.data?.contact,email:x.email||x.data?.email,phone:x.phone||x.data?.phone,taxId:x.tax_id||x.data?.taxId,status:x.status||x.data?.status,whatsapp:x.data?.whatsapp||'',position:x.data?.position||'',additional_contacts_json:x.data?.additional_contacts_json||'[]'}}));render()}
  window.aureaProfiles=()=>rows.map(x=>x.data);
  document.getElementById('newProfileBtn').addEventListener('click',()=>{delete form.dataset.sharedId;form.reset()},true);
  table.addEventListener('click',async e=>{
@@ -2429,11 +2507,78 @@ document.getElementById('expenseAddBank')?.addEventListener('click',()=>{
   </div>
 
   <div class="footer">Aurea Egypt — Import Operations Control</div>
-  <script>window.onload=()=>window.print()<\/script></body></html>`);
+  <script>window.onload=()=>window.print()<\/script>
+
+
+</body></html>`);
   w.document.close();
  },true);
 })();
 </script>
 
+
+<script>
+(function(){
+ const KEY='aureaEgyptProductsForSaleV1',form=document.getElementById('crmProductForm'),body=document.getElementById('crmProductsBody'),toggle=document.getElementById('crmToggleProductForm');
+ if(!form||!body)return;
+ const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+ const get=()=>{try{return JSON.parse(localStorage.getItem(KEY)||'[]')}catch(_){return[]}};
+ const save=x=>localStorage.setItem(KEY,JSON.stringify(x));
+ const fileToDataURL=file=>new Promise((resolve,reject)=>{if(!file||!file.name)return resolve('');const r=new FileReader();r.onload=()=>resolve(r.result);r.onerror=reject;r.readAsDataURL(file)});
+ function normalize(x){x.tasks=Array.isArray(x.tasks)?x.tasks:[];return x}
+ function render(){
+  const rows=get().map(normalize);const today=new Date().toISOString().slice(0,10);
+  body.innerHTML=rows.length?rows.map((x,i)=>{const p=(x.priority||'High').toLowerCase(),open=x.tasks.filter(t=>t.status!=='Completed'),overdue=open.filter(t=>t.dueDate&&t.dueDate<today).length;return `<div class="crm-sale-product ${p==='urgent'?'urgent':p==='normal'?'normal':''}">${x.photo?`<img class="crm-sale-product-photo" src="${x.photo}" alt="${esc(x.product)}">`:''}<div class="crm-sale-product-top"><h4>${esc(x.product)}</h4><span class="status ${p==='urgent'?'red':p==='high'?'amber':''}">${esc(x.priority||'High')}</span></div><div class="crm-sale-product-price">${esc(x.currency)} ${Number(x.price||0).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})} / MT</div><div class="crm-sale-product-meta">${esc(x.origin||'—')} · ${esc(x.incoterm||'—')}<br>Available: <b>${esc(x.availability||'—')}</b></div>${x.specifications?`<div class="crm-product-specs"><b>Specifications</b><br>${esc(x.specifications)}</div>`:''}<div class="crm-product-task-summary ${open.length?'':'clear'}">${open.length?`⚠ ${open.length} open sales task${open.length===1?'':'s'}${overdue?` · ${overdue} overdue`:''}`:'✓ No open sales tasks'}</div>${x.tasks.map((t,ti)=>`<div class="crm-product-task ${t.status==='Completed'?'done':''}"><div class="crm-product-task-head"><span>${esc(t.task)}</span><span>${esc(t.status)}</span></div><div>${esc(t.responsible||'Unassigned')}${t.dueDate?' · Due '+esc(t.dueDate):''}</div><div class="crm-product-task-actions"><button type="button" class="mini-btn crm-task-toggle" data-i="${i}" data-ti="${ti}">${t.status==='Completed'?'Reopen':'Complete'}</button><button type="button" class="mini-btn crm-task-delete" data-i="${i}" data-ti="${ti}">Delete Task</button></div></div>`).join('')}<div class="crm-sale-product-actions"><button type="button" class="mini-btn crm-task-add" data-i="${i}">+ Task</button><button type="button" class="mini-btn crm-product-delete" data-i="${i}">Delete Product</button></div></div>`}).join(''):'<div class="crm-empty-sale">No products marked for active sale. Add a product here when the commercial team needs to prioritize selling it.</div>';
+ }
+ toggle?.addEventListener('click',()=>{const open=form.style.display!=='none';form.style.display=open?'none':'grid';toggle.textContent=open?'+ Add Product for Sale':'Close';});
+ form.addEventListener('submit',async e=>{e.preventDefault();const fd=new FormData(form),photoFile=fd.get('photo'),photo=await fileToDataURL(photoFile),task=String(fd.get('task')||'').trim(),rows=get();const tasks=task?[{task,responsible:String(fd.get('taskResponsible')||'').trim(),dueDate:fd.get('taskDueDate')||'',status:fd.get('taskStatus')||'Pending'}]:[];rows.unshift({product:fd.get('product'),origin:fd.get('origin'),currency:fd.get('currency'),price:Number(fd.get('price')||0),incoterm:fd.get('incoterm'),availability:fd.get('availability'),priority:fd.get('priority'),photo,specifications:String(fd.get('specifications')||'').trim(),tasks});try{save(rows)}catch(err){if(window.notify)notify('Photo is too large. Choose a smaller image.');return}form.reset();form.elements.origin.value='Brazil';form.elements.priority.value='High';form.style.display='none';if(toggle)toggle.textContent='+ Add Product for Sale';render();if(window.notify)notify('Product added to sales priority')});
+ body.addEventListener('click',e=>{let rows=get().map(normalize);const del=e.target.closest('.crm-product-delete');if(del){rows.splice(Number(del.dataset.i),1);save(rows);render();return}const add=e.target.closest('.crm-task-add');if(add){const i=Number(add.dataset.i),task=prompt('Sales task:');if(!task)return;const responsible=prompt('Responsible:')||'',dueDate=prompt('Due date (YYYY-MM-DD):')||'';rows[i].tasks.push({task,responsible,dueDate,status:'Pending'});save(rows);render();return}const toggleTask=e.target.closest('.crm-task-toggle');if(toggleTask){const t=rows[Number(toggleTask.dataset.i)]?.tasks[Number(toggleTask.dataset.ti)];if(t){t.status=t.status==='Completed'?'Pending':'Completed';save(rows);render()}return}const dt=e.target.closest('.crm-task-delete');if(dt){rows[Number(dt.dataset.i)]?.tasks.splice(Number(dt.dataset.ti),1);save(rows);render()}});
+ render();
+})();
+</script>
+
+
+
+
+<script>
+/* Products to Sell -> Send registered offer to a Users / Profiles WhatsApp */
+(function(){
+ const db=window.aureaDb;
+ const body=document.getElementById('crmProductsBody');
+ if(!db||!body)return;
+ let customers=[];
+ const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+ async function loadCustomers(){
+   const {data:{session}}=await db.auth.getSession();
+   if(!session){customers=[];return;}
+   const {data,error}=await db.from('egypt_profiles').select('id,company,status,data').order('company').limit(1000);
+   if(error){console.error(error);return;}
+   customers=(data||[]).map(r=>{const d=r.data||{};return{id:r.id,company:r.company||d.company||'',contact:d.contact||'',whatsapp:String(d.whatsapp||d.phone||'').trim(),status:r.status||d.status||'Active'}}).filter(x=>x.company&&x.whatsapp&&String(x.status).toLowerCase()!=='inactive');
+ }
+ function enhance(){
+   [...body.querySelectorAll('.crm-sale-product')].forEach((card,index)=>{
+     if(card.querySelector('.wa-offer-box'))return;
+     const box=document.createElement('div');box.className='wa-offer-box';box.style.cssText='display:grid;grid-template-columns:1fr auto;gap:7px;margin-top:10px;padding-top:10px;border-top:1px solid #edf0f1';
+     box.innerHTML='<select class="wa-customer" style="min-width:0;border:1px solid var(--line);border-radius:8px;padding:8px"><option value="">Select customer with WhatsApp...</option>'+customers.map(x=>`<option value="${esc(x.id)}">${esc(x.company)}${x.contact?' · '+esc(x.contact):''}</option>`).join('')+'</select><button type="button" class="primary wa-send">Send WhatsApp</button>';
+     card.appendChild(box);
+   });
+ }
+ async function refresh(){await loadCustomers();enhance();}
+ body.addEventListener('click',e=>{
+   const btn=e.target.closest('.wa-send');if(!btn)return;
+   const card=btn.closest('.crm-sale-product'),id=card.querySelector('.wa-customer')?.value;if(!id){window.notify?.('Select a customer with registered WhatsApp.');return;}
+   const c=customers.find(x=>String(x.id)===String(id));if(!c)return;
+   const name=card.querySelector('h4')?.textContent?.trim()||'Product';
+   const price=card.querySelector('.crm-sale-product-price')?.textContent?.trim()||'';
+   const meta=card.querySelector('.crm-sale-product-meta')?.innerText?.trim()||'';
+   const specs=card.querySelector('.crm-product-specs')?.innerText?.replace(/^Specifications\s*/i,'').trim()||'';
+   const msg=[`Hello ${c.contact||c.company},`,'','We have an offer available:',`Product: ${name}`,price?`Price: ${price}`:'',meta,specs?`Specifications: ${specs}`:'','','Please let us know if you are interested.'].filter(Boolean).join('\n');
+   const phone=c.whatsapp.replace(/\D/g,'');if(!phone){window.notify?.('Invalid WhatsApp number.');return;}
+   window.open(`https://wa.me/${phone}?text=${encodeURIComponent(msg)}`,'_blank','noopener');
+ });
+ new MutationObserver(enhance).observe(body,{childList:true,subtree:true});
+ db.auth.onAuthStateChange(()=>setTimeout(refresh,100));setTimeout(refresh,400);
+})();
+</script>
 </body>
 </html>
