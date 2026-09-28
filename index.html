@@ -104,6 +104,9 @@
 .all-shipments-table{width:100%;min-width:1250px;border-collapse:collapse;background:#fff}
 .all-shipments-table th{padding:11px 10px;text-align:left;background:#f8faf9;border-bottom:1px solid var(--line);font-size:11px;font-weight:800;text-transform:uppercase;white-space:nowrap;color:var(--muted)}
 .all-shipments-table td{padding:11px 10px;border-bottom:1px solid #edf0f1;font-size:12px;vertical-align:middle;white-space:nowrap}
+/* Keep long exporter/importer names readable within the shipment list. */
+.all-shipments-table th:nth-child(2),.all-shipments-table th:nth-child(3),.all-shipments-table td:nth-child(2),.all-shipments-table td:nth-child(3){width:170px;min-width:150px;max-width:170px;white-space:normal}
+.all-shipments-table .party-name{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;line-clamp:2;overflow:hidden;overflow-wrap:anywhere;line-height:1.4;max-height:2.8em}
 .all-shipments-table tbody tr.file-item{display:table-row!important;width:auto!important;margin:0!important;border:0!important;border-radius:0!important;padding:0!important;background:#fff;cursor:default}
 .all-shipments-table tbody tr.file-item:hover td{background:#fafbf9}
 .all-shipments-table tbody tr.file-item.active td{background:#fffaf0}
@@ -821,13 +824,14 @@ function getShipmentsFromCargoTable(){
       const c=row?[...row.querySelectorAll('td')]:[];
       const text=i=>(c[i]?.innerText||'').split('\n').map(v=>v.trim()).filter(Boolean);
       const exporter=text(1), importer=text(2), bl=text(3), ac=text(4), vp=text(5), eta=text(6), pq=text(7), st=text(10);
+      const partyName=value=>{const name=String(value||'—');const safe=name.replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));return `<span class="party-name" title="${safe}">${safe}</span>`};
       const tr=document.createElement('tr');
       tr.className='file-item';
       tr.dataset.progress=String(data?.progress||0);
       tr.innerHTML=`
         <td><b>${x.shipmentRef}</b><small style="display:none">${x.product||''} · ${x.port||''} · ${data?.progress||0}/6 stages</small></td>
-        <td>${exporter[0]||'—'}</td>
-        <td>${importer[0]||'—'}</td>
+        <td>${partyName(exporter[0])}</td>
+        <td>${partyName(importer[0])}</td>
         <td>${bl[0]||'—'}</td>
         <td>${ac[0]||'Pending'}</td>
         <td>${vp[0]||'—'}</td>
@@ -923,8 +927,32 @@ initImportStageTabs();
   }
 
   function receivingKey(ref){return `aureaReceivingTickets:${ref}`;}
-  function getReceivingTickets(ref){return JSON.parse(localStorage.getItem(receivingKey(ref))||'[]');}
-  function saveReceivingTickets(ref,tickets){localStorage.setItem(receivingKey(ref),JSON.stringify(tickets));}
+  const receivingCache=new Map();let receivingReady=false;
+  function getReceivingTickets(ref){return receivingCache.get(ref)||[];}
+  async function loadReceivingTickets(){
+    const db=window.aureaDb;if(!db)return;
+    const {data:{session}}=await db.auth.getSession();
+    if(!session){receivingCache.clear();receivingReady=false;renderReceivingTickets();renderInventory();return;}
+    const next=new Map();let from=0;
+    for(;;){
+      const {data,error}=await db.from('egypt_receiving_tickets').select('id,shipment_ref,data,file_name,file_type,file_data').order('created_at',{ascending:true}).range(from,from+499);
+      if(error){notify('Could not load receiving tickets: '+error.message);return;}
+      for(const row of data||[]){const tickets=next.get(row.shipment_ref)||[];tickets.push({...row.data,id:row.id,fileName:row.file_name||row.data?.fileName||'',fileType:row.file_type||row.data?.fileType||'',fileData:row.file_data||row.data?.fileData||''});next.set(row.shipment_ref,tickets)}
+      if((data||[]).length<500)break;from+=500;
+    }
+    receivingCache.clear();for(const [ref,tickets] of next)receivingCache.set(ref,tickets);
+    receivingReady=true;renderReceivingTickets();renderInventory();
+  }
+  setTimeout(()=>{const db=window.aureaDb;if(!db)return;db.auth.onAuthStateChange(()=>setTimeout(loadReceivingTickets,0));loadReceivingTickets()},0);
+  async function persistReceivingTicket(ref,record,existing){
+    if(!receivingReady)throw new Error('Tickets are still loading. Please try again.');
+    const db=window.aureaDb,id=existing?.id||crypto.randomUUID();
+    const {fileData,fileName,fileType,...data}=record;
+    const payload={id,shipment_ref:ref,data,file_name:fileName||null,file_type:fileType||null,file_data:fileData||null,updated_at:new Date().toISOString()};
+    const result=existing?.id?await db.from('egypt_receiving_tickets').update(payload).eq('id',id).select('id'):await db.from('egypt_receiving_tickets').insert(payload).select('id');
+    if(result.error)throw result.error;if(!result.data?.length)throw new Error('Database did not confirm the ticket.');
+    await loadReceivingTickets();
+  }
    const receivingFileToDataURL=file=>new Promise((resolve,reject)=>{if(!file||!file.name)return resolve('');const r=new FileReader();r.onload=()=>resolve(String(r.result||''));r.onerror=()=>reject(new Error('Could not read ticket attachment'));r.readAsDataURL(file)});
    function receivingDataUrlToBlobUrl(dataUrl){try{const p=String(dataUrl||'').split(',');if(p.length<2)return '';const mime=(p[0].match(/data:([^;]+)/)||[])[1]||'application/octet-stream',bin=atob(p.slice(1).join(',')),bytes=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)bytes[i]=bin.charCodeAt(i);return URL.createObjectURL(new Blob([bytes],{type:mime}))}catch(_){return ''}}
 
@@ -988,6 +1016,25 @@ initImportStageTabs();
     toggleModal(receivingModal,true);
   };
   document.querySelector('.receivingClose').onclick=document.querySelector('.receivingCancel').onclick=()=>toggleModal(receivingModal,false);
+  // Existing browser-only tickets remain untouched until the user chooses to import them.
+  const importOldTickets=document.createElement('button');
+  importOldTickets.type='button';importOldTickets.className='secondary';importOldTickets.textContent='Import tickets saved on this browser';
+  document.getElementById('addReceivingTicketBtn').insertAdjacentElement('afterend',importOldTickets);
+  importOldTickets.onclick=async()=>{
+    if(!receivingReady){notify('Wait for receiving tickets to load.');return}
+    const saved=[];
+    for(let i=0;i<localStorage.length;i++){
+      const key=localStorage.key(i);if(!key?.startsWith('aureaReceivingTickets:'))continue;
+      try{const ref=key.slice('aureaReceivingTickets:'.length);for(const ticket of JSON.parse(localStorage.getItem(key)||'[]'))saved.push({ref,ticket})}catch(_){}
+    }
+    const fingerprint=t=>[t.date,t.container,t.ticketNo,t.weightFull,t.weightEmpty,t.weight].map(v=>String(v??'').trim().toLowerCase()).join('|');
+    const missing=saved.filter(({ref,ticket})=>!getReceivingTickets(ref).some(x=>fingerprint(x)===fingerprint(ticket)));
+    if(!missing.length){notify('No browser-only tickets to import.');return}
+    if(!confirm(`Import ${missing.length} saved receiving ticket(s) into Supabase for all users? Existing browser copies will remain.`))return;
+    importOldTickets.disabled=true;
+    try{for(const {ref,ticket} of missing)await persistReceivingTicket(ref,ticket,null);notify(`${missing.length} receiving ticket(s) imported for all users`)}
+    catch(err){notify('Import stopped: '+err.message+'; refresh before trying again.')}finally{importOldTickets.disabled=false}
+  };
   document.getElementById('receivingTicketForm').addEventListener('input',e=>{
     const f=e.currentTarget, full=Number(f.elements.weightFull?.value||0), empty=Number(f.elements.weightEmpty?.value||0);
     if(f.elements.weight) f.elements.weight.value=(full||empty)?Math.max(0,full-empty).toFixed(2):'';
@@ -1001,15 +1048,15 @@ initImportStageTabs();
      let fileData='';try{fileData=await receivingFileToDataURL(file)}catch(err){notify(err.message);return;}
      const weightFull=Number(fd.get('weightFull')||0),weightEmpty=Number(fd.get('weightEmpty')||0),receivedWeight=Math.max(0,weightFull-weightEmpty);
      const record={date:fd.get('date'),container:fd.get('container'),ticketNo:fd.get('ticketNo'),weightFull,weightEmpty,weight:receivedWeight,transportName:fd.get('transportName')||'',lot:fd.get('lot')||'',warehouse:fd.get('warehouse')||'',expiry:fd.get('expiry')||'',fileName:file?.name||existing?.fileName||'',fileType:file?.type||existing?.fileType||'',fileData:fileData||existing?.fileData||'',notes:fd.get('notes')||''};
-     if(existing)tickets[Number(editIndex)]=record;else tickets.push(record);saveReceivingTickets(info.ref,tickets);
-     e.target.reset();e.target.elements.editIndex.value='';toggleModal(receivingModal,false);renderReceivingTickets();renderInventory();notify(existing?`Receiving ticket updated for ${info.ref}`:`Received weight added to ${info.ref}`);
+     try{await persistReceivingTicket(info.ref,record,existing)}catch(err){notify('Could not save receiving ticket: '+err.message);return;}
+     e.target.reset();e.target.elements.editIndex.value='';toggleModal(receivingModal,false);notify(existing?`Receiving ticket updated for all users · ${info.ref}`:`Received weight shared with all users · ${info.ref}`);
   };
-  document.querySelector('#receivingTicketTable tbody').onclick=e=>{
+  document.querySelector('#receivingTicketTable tbody').onclick=async e=>{
      const info=getSelectedShipmentInfo();if(!info)return;const tickets=getReceivingTickets(info.ref);
      const edit=e.target.closest('.edit-receiving-ticket'),view=e.target.closest('.view-receiving-ticket'),download=e.target.closest('.download-receiving-ticket'),del=e.target.closest('.delete-receiving-ticket');
      if(edit){const i=Number(edit.dataset.index),t=tickets[i],f=document.getElementById('receivingTicketForm');if(!t)return;f.reset();f.elements.editIndex.value=String(i);['date','container','ticketNo','weightFull','weightEmpty','weight','transportName','lot','warehouse','expiry','notes'].forEach(k=>{if(f.elements[k])f.elements[k].value=t[k]??''});document.getElementById('receivingShipmentLabel').textContent=`Edit ticket · Shipment ${info.ref}`;document.getElementById('receivingFileHint').textContent=t.fileName?`Current file: ${t.fileName}. Choose a new file only to replace it.`:'Attach PDF, JPG or PNG.';toggleModal(receivingModal,true);return;}
      if(view||download){const t=tickets[Number((view||download).dataset.index)];if(!t?.fileData){notify('This older ticket only stored the file name. Click Edit and attach the file again.');return}const u=receivingDataUrlToBlobUrl(t.fileData);if(!u){notify('Could not reconstruct the ticket attachment.');return}if(view){const w=window.open(u,'_blank');if(!w)notify('Allow pop-ups to view the ticket.');setTimeout(()=>URL.revokeObjectURL(u),60000)}else{const a=document.createElement('a');a.href=u;a.download=t.fileName||'receiving-ticket';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),5000)}return;}
-     if(del){if(!confirm('Delete this receiving ticket?'))return;tickets.splice(Number(del.dataset.index),1);saveReceivingTickets(info.ref,tickets);renderReceivingTickets();renderInventory();notify('Receiving ticket deleted');}
+     if(del){const ticket=tickets[Number(del.dataset.index)];if(!ticket?.id||!confirm('Delete this receiving ticket for all users?'))return;const {error}=await window.aureaDb.from('egypt_receiving_tickets').delete().eq('id',ticket.id);if(error){notify('Could not delete ticket: '+error.message);return}await loadReceivingTickets();notify('Receiving ticket deleted for all users');}
   };
   document.querySelector('#inventoryTable tbody').onclick=e=>{
     const btn=e.target.closest('.inventory-open-sequence');if(!btn)return;
