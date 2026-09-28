@@ -1147,17 +1147,52 @@ document.getElementById('editSaleAddBuyer')?.addEventListener('click',addBuyerFr
   }
   document.getElementById('saleLot').onchange=updateSaleStock;
   document.getElementById('saleQuantity').oninput=updateSaleStock;
-  document.getElementById('saleForm').onsubmit=e=>{
+  const salesBody=document.querySelector('#salesTable tbody');
+  salesBody.innerHTML=''; // The sample invoices in the HTML are not actual business records.
+  let salesReady=false;
+  const salesPayments=new Map();
+  function salesRow(d){
+    const total=Number(d.total||0),paid=Number(d.paid||0),qty=Number(d.quantity||0);
+    const tr=document.createElement('tr');
+    Object.assign(tr.dataset,{invoice:d.invoice,date:d.date||'',buyer:d.buyer||'',product:d.product||'',lot:d.lot||'',reference:d.reference||'',quantity:String(qty),unitPrice:String(d.unitPrice||0),plateTruck:d.plateTruck||'',truckStatus:d.truckStatus||'To be loaded',total:String(total),paid:String(paid),seller:d.seller||'',dueDate:d.dueDate||''});
+    tr.innerHTML=`<td><span class="ref-link">${safe(d.invoice)}</span></td><td>${safe(d.date||'')}</td><td>${safe(d.buyer||'')}</td><td>${safe(d.product||'')} · ${safe(d.lot||'—')}<br><span class="muted">${safe(d.reference||'')}</span></td><td>${qty.toLocaleString('en-US')} kg</td><td class="invoice-total">EGP ${money(total)}</td><td><span class="status payment-status${paid<total?' amber':''}">${paid>=total?'Paid':'Receivable'}</span></td><td class="current-balance">EGP ${money(Math.max(0,total-paid))}</td><td><button class="mini-btn edit-sale" type="button">Edit</button> <button class="mini-btn payment-btn">Payment</button> <button class="mini-btn pdf-btn">Invoice PDF</button> <button class="mini-btn loaded-order-pdf" type="button">Loading Authorization PDF</button> <button class="mini-btn delete-sale" type="button">Delete</button></td>`;
+    return tr;
+  }
+  async function loadSales(){
+    const db=window.aureaDb;if(!db)return;
+    const {data:{session}}=await db.auth.getSession();
+    if(!session){salesReady=false;salesBody.replaceChildren();salesPayments.clear();return;}
+    const [a,b]=await Promise.all([db.from('egypt_sales_invoices').select('invoice_number,data').order('created_at',{ascending:false}).limit(1000),db.from('egypt_sales_payments').select('id,invoice_number,data').order('created_at',{ascending:true}).limit(1000)]);
+    if(a.error||b.error){notify('Could not load sales invoices: '+(a.error||b.error).message);return;}
+    salesBody.replaceChildren();salesPayments.clear();
+    for(const p of b.data||[]){const list=salesPayments.get(p.invoice_number)||[];list.push({...p.data,id:p.id});salesPayments.set(p.invoice_number,list)}
+    for(const r of a.data||[])salesBody.appendChild(salesRow({...r.data,invoice:r.invoice_number}));
+    salesReady=true;renderInventory();syncSalesShipmentOptions();updateSalesReceivable();updateSalesVolume30();updateSalesInvoicedMonth();
+  }
+  setTimeout(()=>{const db=window.aureaDb;if(!db)return;db.auth.onAuthStateChange(()=>setTimeout(loadSales,0));loadSales()},0);
+  async function saveSale(d){const {error}=await window.aureaDb.from('egypt_sales_invoices').upsert({invoice_number:d.invoice,shipment_ref:d.reference||null,buyer:d.buyer||null,amount:Number(d.total||0),paid:Number(d.paid||0),data:d},{onConflict:'invoice_number'});if(error)throw error;}
+  const importSales=document.createElement('button');importSales.type='button';importSales.className='secondary';importSales.textContent='Import sales invoices saved on this browser';
+  document.getElementById('saleBtn').insertAdjacentElement('afterend',importSales);
+  importSales.onclick=async()=>{
+    if(!salesReady){notify('Wait for sales invoices to load.');return;}
+    const old=[];for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(k?.startsWith('sale:'))try{const d=JSON.parse(localStorage.getItem(k));if(d?.invoice)old.push(d)}catch(_){}}
+    let count=0,failed=0;
+    for(const d of old){if([...salesBody.querySelectorAll('tr[data-invoice]')].some(r=>r.dataset.invoice===d.invoice))continue;
+      try{await saveSale(d);const payments=JSON.parse(localStorage.getItem(`payments:${d.invoice}`)||'[]');for(const pay of payments){const {data:existing,error:readError}=await window.aureaDb.from('egypt_sales_payments').select('data').eq('invoice_number',d.invoice);if(readError)throw readError;if(existing?.some(p=>p.data?.paymentDate===pay.paymentDate&&p.data?.paymentAmount===pay.paymentAmount&&p.data?.paymentBank===pay.paymentBank))continue;const {error}=await window.aureaDb.from('egypt_sales_payments').insert({invoice_number:d.invoice,amount:Number(pay.paymentAmount||0),data:pay});if(error)throw error}count++}catch(e){failed++;notify(`Import ${d.invoice}: ${e.message}`)}
+    }
+    await loadSales();notify(`${count} invoices imported${failed?`; ${failed} failed`:''}.`);
+  };
+  document.getElementById('saleForm').onsubmit=async e=>{
     e.preventDefault();
     const d=Object.fromEntries(new FormData(e.target)),stock=selectedStock(),qty=Number(d.quantity),available=Number(stock?.available||0);
     if(!stock||qty>available){notify(`Insufficient stock. Available: ${available.toLocaleString('en-US')} kg`);return}
+    if(!salesReady){notify('Wait for sales invoices to load.');return;}
+    if([...salesBody.querySelectorAll('tr[data-invoice]')].some(r=>r.dataset.invoice===d.invoice)){notify('This invoice number already exists.');return;}
     const total=qty*Number(d.unitPrice),paid=d.payment==='Paid'?total:0;
-    const tr=document.createElement('tr');
-    Object.assign(tr.dataset,{invoice:d.invoice,date:d.date,buyer:d.buyer,product:stock.product,lot:stock.lot,reference:stock.reference,quantity:String(qty),unitPrice:d.unitPrice,plateTruck:d.plateTruck||'',truckStatus:d.truckStatus||'To be loaded',total:String(total),paid:String(paid),seller:d.seller,dueDate:d.dueDate||''});
-    tr.innerHTML=`<td><span class="ref-link">${safe(d.invoice)}</span></td><td>${safe(d.date)}</td><td>${safe(d.buyer)}</td><td>${safe(stock.product)} · ${safe(stock.lot||'—')}<br><span class="muted">${safe(stock.reference)}</span></td><td>${qty.toLocaleString('en-US')} kg</td><td class="invoice-total">EGP ${money(total)}</td><td><span class="status ${paid<total?'amber':''} payment-status">${paid>=total?'Paid':d.payment}</span></td><td class="current-balance">EGP ${money(total-paid)}</td><td><button class="mini-btn edit-sale" type="button">Edit</button> <button class="mini-btn payment-btn">Payment</button> <button class="mini-btn pdf-btn">Invoice PDF</button> <button class="mini-btn loaded-order-pdf" type="button">Loading Authorization PDF</button> <button class="mini-btn delete-sale" type="button">Delete</button></td>`;
-    document.querySelector('#salesTable tbody').prepend(tr);
-    localStorage.setItem(`sale:${d.invoice}`,JSON.stringify({...d,product:stock.product,lot:stock.lot,reference:stock.reference,quantity:qty,total,paid}));
-    localStorage.setItem('aurea:deletedSales',JSON.stringify(JSON.parse(localStorage.getItem('aurea:deletedSales')||'[]').filter(x=>x!==d.invoice)));
+    const record={...d,product:stock.product,lot:stock.lot,reference:stock.reference,quantity:qty,total,paid};
+    if(!salesReady){notify('Wait for sales invoices to load.');return;}
+    try{await saveSale(record)}catch(error){notify('Could not save invoice: '+error.message);return;}
+    await loadSales();
     toggleModal(saleModal,false);
     renderInventory();syncSalesShipmentOptions();updateSalesReceivable();updateSalesVolume30();updateSalesInvoicedMonth();
     notify(`Invoice ${d.invoice} created. ${qty.toLocaleString('en-US')} kg sold from ${stock.reference}`);
@@ -1236,7 +1271,7 @@ document.getElementById('editSaleAddBuyer')?.addEventListener('click',addBuyerFr
     toggleModal(editSaleModal,true);
   }
   document.querySelector('.editSaleClose').onclick=document.querySelector('.editSaleCancel').onclick=()=>toggleModal(editSaleModal,false);
-  document.getElementById('editSaleForm').onsubmit=e=>{
+  document.getElementById('editSaleForm').onsubmit=async e=>{
     e.preventDefault();
     const d=Object.fromEntries(new FormData(e.target));
     const row=[...document.querySelectorAll('#salesTable tbody tr')].find(r=>r.dataset.invoice===d.originalInvoice);
@@ -1246,23 +1281,10 @@ document.getElementById('editSaleAddBuyer')?.addEventListener('click',addBuyerFr
     const soldOther=[...document.querySelectorAll('#salesTable tbody tr')].filter(r=>r!==row&&r.dataset.reference===ref).reduce((sum,r)=>sum+Number(r.dataset.quantity||0),0);
     const maxQty=Math.max(0,received-soldOther);
     if(newQty>maxQty){notify(`Quantity exceeds available inventory. Maximum for this invoice: ${maxQty.toLocaleString('en-US')} kg`);return;}
-    const oldInvoice=row.dataset.invoice,oldPaid=Number(row.dataset.paid||0),total=newQty*Number(d.unitPrice||0),paid=Math.min(oldPaid,total),balance=Math.max(0,total-paid);
-    Object.assign(row.dataset,{invoice:d.invoice,date:d.date,buyer:d.buyer,product:d.product,lot:d.lot,reference:d.reference,quantity:String(newQty),unitPrice:d.unitPrice,plateTruck:d.plateTruck||'',truckStatus:d.truckStatus||'To be loaded',total:String(total),paid:String(paid),seller:d.seller||'',dueDate:d.dueDate||''});
-    const cells=row.children;
-    cells[0].innerHTML=`<span class="ref-link">${safe(d.invoice)}</span>`;
-    cells[1].textContent=d.date;
-    cells[2].textContent=d.buyer;
-    cells[3].innerHTML=`${safe(d.product)} · ${safe(d.lot||'—')}<br><span class="muted">${safe(d.reference)}</span>`;
-    cells[4].textContent=`${newQty.toLocaleString('en-US')} kg`;
-    cells[5].textContent=`EGP ${money(total)}`; cells[5].className='invoice-total';
-    cells[6].innerHTML=`<span class="status payment-status${balance>0?' amber':''}">${balance<=0?'Paid':'Receivable'}</span>`;
-    cells[7].textContent=`EGP ${money(balance)}`; cells[7].className='current-balance';
-    if(oldInvoice!==d.invoice){
-      const oldSale=localStorage.getItem(`sale:${oldInvoice}`),oldPayments=localStorage.getItem(`payments:${oldInvoice}`);
-      localStorage.removeItem(`sale:${oldInvoice}`); localStorage.removeItem(`payments:${oldInvoice}`);
-      if(oldPayments)localStorage.setItem(`payments:${d.invoice}`,oldPayments);
-    }
-    localStorage.setItem(`sale:${d.invoice}`,JSON.stringify({...d,total,paid}));
+    const oldInvoice=row.dataset.invoice,oldPaid=Number(row.dataset.paid||0),total=newQty*Number(d.unitPrice||0),paid=Math.min(oldPaid,total);
+    if(d.invoice!==oldInvoice){notify('Keep the existing invoice number when editing.');return;}
+    try{await saveSale({...d,total,paid})}catch(error){notify('Could not update invoice: '+error.message);return;}
+    await loadSales();
     toggleModal(editSaleModal,false);
     renderInventory();syncSalesShipmentOptions();updateSalesReceivable();updateSalesVolume30();updateSalesInvoicedMonth();
     notify(`Sales invoice ${d.invoice} updated`);
@@ -1273,7 +1295,16 @@ document.getElementById('editSaleAddBuyer')?.addEventListener('click',addBuyerFr
     const opening=Number(form.dataset.openingBalance||0),amount=Number(e.target.value||0);
     document.getElementById('paymentBalance').value=`EGP ${money(Math.max(0,opening-amount))}`;
   });
-  document.getElementById('paymentForm').onsubmit=e=>{e.preventDefault();const d=Object.fromEntries(new FormData(e.target)),row=[...document.querySelectorAll('#salesTable tbody tr')].find(r=>r.dataset.invoice===d.invoice),total=Number(row.dataset.total),oldPaid=Number(row.dataset.paid||0),amount=Number(d.paymentAmount),openingBalance=Math.max(0,total-oldPaid);if(amount>openingBalance){notify(`Payment exceeds the outstanding balance of EGP ${money(openingBalance)}`);return}const paid=oldPaid+amount,currentBalance=Math.max(0,openingBalance-amount);row.dataset.paid=String(paid);const status=row.querySelector('.payment-status');status.textContent=currentBalance<=0?'Paid':'Receivable';status.className=`status payment-status${currentBalance>0?' amber':''}`;const balanceCell=row.querySelector('.current-balance');if(balanceCell)balanceCell.textContent=`EGP ${money(currentBalance)}`;const payments=JSON.parse(localStorage.getItem(`payments:${d.invoice}`)||'[]');payments.push({...d,balanceAfter:currentBalance});localStorage.setItem(`payments:${d.invoice}`,JSON.stringify(payments));const savedSale=JSON.parse(localStorage.getItem(`sale:${d.invoice}`)||'{}');localStorage.setItem(`sale:${d.invoice}`,JSON.stringify({...savedSale,paid}));document.getElementById('paymentBalance').value=`EGP ${money(currentBalance)}`;updateSalesReceivable();const wasExpanded=!!paymentDetailRow(row);if(wasExpanded){paymentDetailRow(row).remove();togglePaymentDetails(row);}toggleModal(paymentModal,false);notify(`Payment of EGP ${money(amount)} recorded. Current balance: EGP ${money(currentBalance)}`)};
+  document.getElementById('paymentForm').onsubmit=async e=>{
+    e.preventDefault();const d=Object.fromEntries(new FormData(e.target));const row=[...salesBody.querySelectorAll('tr[data-invoice]')].find(r=>r.dataset.invoice===d.invoice);
+    if(!row)return;const total=Number(row.dataset.total),oldPaid=Number(row.dataset.paid||0),amount=Number(d.paymentAmount),balance=total-oldPaid;
+    if(!Number.isFinite(amount)||amount<=0||amount>balance){notify(`Enter a payment between 0 and EGP ${money(balance)}`);return;}
+    const db=window.aureaDb;const pay={...d,balanceAfter:balance-amount};
+    const {data:created,error}=await db.from('egypt_sales_payments').insert({invoice_number:d.invoice,amount,data:pay}).select('id').single();
+    if(error){notify('Could not record payment: '+error.message);return;}
+    try{await saveSale({...row.dataset,paid:oldPaid+amount})}catch(err){await db.from('egypt_sales_payments').delete().eq('id',created.id);notify('Could not update balance: '+err.message);return;}
+    await loadSales();toggleModal(paymentModal,false);notify(`Payment of EGP ${money(amount)} recorded.`);
+  };
   function paymentDetailRow(invoiceRow){
     const next=invoiceRow.nextElementSibling;
     return next&&next.classList.contains('sales-payment-detail')?next:null;
@@ -1285,7 +1316,7 @@ document.getElementById('editSaleAddBuyer')?.addEventListener('click',addBuyerFr
     const existing=paymentDetailRow(row);
     if(existing){existing.remove();return;}
     closePaymentDetails();
-    const payments=JSON.parse(localStorage.getItem(`payments:${row.dataset.invoice}`)||'[]');
+    const payments=(salesPayments.get(row.dataset.invoice)||[]);
     const total=Number(row.dataset.total||0);
     let runningPaid=0;
     const detail=document.createElement('tr');
@@ -1299,7 +1330,7 @@ document.getElementById('editSaleAddBuyer')?.addEventListener('click',addBuyerFr
     td.innerHTML=`<div class="sales-payment-wrap"><h4>Payment Records · ${safe(row.dataset.invoice)}</h4>${payments.length?`<table class="data-table"><thead><tr><th>Payment Date</th><th>Bank</th><th>Payment Amount (EGP)</th><th>Current Balance</th></tr></thead><tbody>${rows}</tbody></table>`:'<p class="muted">No Record Payment has been registered for this invoice.</p>'}</div>`;
     detail.appendChild(td);row.after(detail);
   }
-  function invoicePdf(row){const payments=JSON.parse(localStorage.getItem(`payments:${row.dataset.invoice}`)||'[]'),seller=row.dataset.seller||'Aurea Commercial Egypt',total=Number(row.dataset.total),paid=Number(row.dataset.paid||0),paymentRows=payments.length?payments.map(p=>`<tr><td>${safe(p.paymentDate)}</td><td>${safe(p.paymentBank)}</td><td>EGP ${money(p.paymentAmount)}</td><td>EGP ${money(p.balanceAfter??Math.max(0,total-Number(p.paymentAmount||0)))}</td></tr>`).join(''):'<tr><td colspan="4">No payment recorded</td></tr>';const w=window.open('','_blank');w.document.write(`<!doctype html><html><head><title>${safe(row.dataset.invoice)}</title><style>body{font:14px Arial;color:#17313b;margin:42px}header{border-bottom:4px solid #d9b46d;margin-bottom:28px;padding-bottom:18px}h1{margin:12px 0 4px}section{display:grid;grid-template-columns:1fr 1fr;gap:28px;margin:24px 0}.box{border:1px solid #cad5d9;padding:15px}table{width:100%;border-collapse:collapse;margin-top:20px}th,td{border:1px solid #cad5d9;padding:10px;text-align:left}th{background:#eef3f4}.total{font-size:19px;font-weight:bold;text-align:right;margin-top:22px}.muted{color:#65777e}@media print{button{display:none}}</style>
+  function invoicePdf(row){const payments=(salesPayments.get(row.dataset.invoice)||[]),seller=row.dataset.seller||'Aurea Commercial Egypt',total=Number(row.dataset.total),paid=Number(row.dataset.paid||0),paymentRows=payments.length?payments.map(p=>`<tr><td>${safe(p.paymentDate)}</td><td>${safe(p.paymentBank)}</td><td>EGP ${money(p.paymentAmount)}</td><td>EGP ${money(p.balanceAfter??Math.max(0,total-Number(p.paymentAmount||0)))}</td></tr>`).join(''):'<tr><td colspan="4">No payment recorded</td></tr>';const w=window.open('','_blank');w.document.write(`<!doctype html><html><head><title>${safe(row.dataset.invoice)}</title><style>body{font:14px Arial;color:#17313b;margin:42px}header{border-bottom:4px solid #d9b46d;margin-bottom:28px;padding-bottom:18px}h1{margin:12px 0 4px}section{display:grid;grid-template-columns:1fr 1fr;gap:28px;margin:24px 0}.box{border:1px solid #cad5d9;padding:15px}table{width:100%;border-collapse:collapse;margin-top:20px}th,td{border:1px solid #cad5d9;padding:10px;text-align:left}th{background:#eef3f4}.total{font-size:19px;font-weight:bold;text-align:right;margin-top:22px}.muted{color:#65777e}@media print{button{display:none}}</style>
 <style>
 .status-checks{display:grid;grid-template-columns:repeat(2,minmax(150px,1fr));gap:8px;padding:10px;border:1px solid var(--line);border-radius:9px;background:#fff}.status-checks label{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600;cursor:pointer}.status-checks input{width:auto!important;margin:0}.status-stack{display:flex;gap:4px;flex-wrap:wrap}.status-stack .status{margin:0}
 </style>
@@ -1307,7 +1338,7 @@ document.getElementById('editSaleAddBuyer')?.addEventListener('click',addBuyerFr
 
 
 </body></html>`);w.document.close();setTimeout(()=>w.print(),350)}
-  document.getElementById('salesTable').onclick=e=>{
+  document.getElementById('salesTable').onclick=async e=>{
     const row=e.target.closest('tr');
     if(!row||!row.dataset.invoice)return;
     if(e.target.closest('.edit-sale')){openEditSale(row);return;}
@@ -1316,20 +1347,16 @@ document.getElementById('editSaleAddBuyer')?.addEventListener('click',addBuyerFr
     if(e.target.closest('.delete-sale')){
       const invoice=row.dataset.invoice||'this invoice';
       if(!confirm(`Delete sales invoice ${invoice}? This action cannot be undone.`))return;
-      localStorage.removeItem(`sale:${invoice}`);localStorage.removeItem(`payments:${invoice}`);
-      const deletedSales=JSON.parse(localStorage.getItem('aurea:deletedSales')||'[]');
-      if(!deletedSales.includes(invoice))deletedSales.push(invoice);
-      localStorage.setItem('aurea:deletedSales',JSON.stringify(deletedSales));
+      const {error}=await window.aureaDb.from('egypt_sales_invoices').delete().eq('invoice_number',invoice);
+      if(error){notify('Could not delete invoice: '+error.message);return;}
+      await loadSales();
       const detail=paymentDetailRow(row);if(detail)detail.remove();
-      row.remove();
       if(typeof renderInventory==='function')renderInventory();
       updateSalesReceivable();updateSalesVolume30();updateSalesInvoicedMonth();syncSalesShipmentOptions();
       notify(`Sales invoice ${invoice} deleted`);return;
     }
     togglePaymentDetails(row);
   };
-  const deletedSalesOnLoad=JSON.parse(localStorage.getItem('aurea:deletedSales')||'[]');
-  document.querySelectorAll('#salesTable tbody tr[data-invoice]').forEach(row=>{if(deletedSalesOnLoad.includes(row.dataset.invoice))row.remove()});
   const salesBuyerFilter=document.getElementById('salesBuyerFilter'),salesProductFilter=document.getElementById('salesProductFilter');function filterSales(){const buyer=salesBuyerFilter.value.toLowerCase(),product=salesProductFilter.value.toLowerCase();document.querySelectorAll('#salesTable tbody tr').forEach(row=>row.style.display=(!buyer||row.dataset.buyer.toLowerCase().includes(buyer))&&(!product||row.dataset.product.toLowerCase().includes(product))?'':'none')}salesBuyerFilter.oninput=filterSales;salesProductFilter.oninput=filterSales;
   stockRows().forEach(row=>{const saved=localStorage.getItem(`stock:${row.dataset.stockLot}`);if(saved!==null){row.dataset.available=saved;row.querySelector('.available-value').textContent=`${Number(saved).toLocaleString('en-US')} kg`}});
   document.querySelectorAll('.role').forEach(x=>{if(x.textContent==='Buyer')x.textContent='Consignee'});document.getElementById('profileCount').textContent=document.querySelectorAll('#profileTable tbody tr').length;document.getElementById('newProfileBtn').onclick=()=>toggleModal(profileModal,true);document.querySelector('.profileClose').onclick=document.querySelector('.profileCancel').onclick=()=>toggleModal(profileModal,false);document.getElementById('profileForm').onsubmit=e=>{if(window.aureaSharedProfilesEnabled)return;e.preventDefault();const d=Object.fromEntries(new FormData(e.target));const tr=document.createElement('tr');tr.innerHTML=`<td><b>${d.company}</b><br><span class="muted">${d.address}</span></td><td><span class="role">${d.type}</span></td><td>${d.country}</td><td>${d.contact||'—'}</td><td>${d.email||'—'}<br><span class="muted">${d.phone||''}</span></td><td>${d.taxId||'—'}</td><td><span class="status">${d.status}</span></td><td><button type="button" class="mini-btn profile-edit">Edit</button> <button type="button" class="mini-btn profile-delete">Delete</button></td>`;document.querySelector('#profileTable tbody').prepend(tr);document.getElementById('profileCount').textContent=document.querySelectorAll('#profileTable tbody tr').length;const opt=document.createElement('option');opt.value=d.company;document.getElementById('buyerList').appendChild(opt);localStorage.setItem(`profile:${d.company}`,JSON.stringify(d));
