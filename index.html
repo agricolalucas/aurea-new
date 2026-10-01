@@ -107,7 +107,7 @@
 .all-shipments-table td{padding:11px 10px;border-bottom:1px solid #edf0f1;font-size:12px;vertical-align:middle;white-space:nowrap}
 /* Keep long exporter/importer names readable within the shipment list. */
 .all-shipments-table th:nth-child(2),.all-shipments-table th:nth-child(3),.all-shipments-table td:nth-child(2),.all-shipments-table td:nth-child(3){width:170px;min-width:150px;max-width:170px;white-space:normal}
-.all-shipments-table .party-name{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;line-clamp:2;overflow:hidden;overflow-wrap:anywhere;line-height:1.4;max-height:2.8em}
+.all-shipments-table .party-name{display:block;white-space:pre-wrap;overflow:visible;overflow-wrap:anywhere;line-height:1.4}
 .all-shipments-table tbody tr.file-item{display:table-row!important;width:auto!important;margin:0!important;border:0!important;border-radius:0!important;padding:0!important;background:#fff;cursor:default}
 .all-shipments-table tbody tr.file-item:hover td{background:#fafbf9}
 .all-shipments-table tbody tr.file-item.active td{background:#fffaf0}
@@ -194,6 +194,7 @@
 <style>
 .crm-product-form .full{grid-column:1/-1}.crm-product-form textarea{width:100%;border:1px solid var(--line);border-radius:8px;padding:9px;font:inherit;min-height:76px;resize:vertical}.crm-product-photo-preview{width:100%;height:120px;object-fit:cover;border-radius:9px;border:1px solid var(--line);background:#f3f6f6}.crm-sale-product-photo{width:100%;height:130px;object-fit:cover;border-radius:8px;margin-bottom:10px;border:1px solid #edf0f1;background:#f3f6f6}.crm-product-specs{font-size:11px;line-height:1.5;margin-top:8px;padding:8px;background:#f8faf9;border-radius:8px;white-space:pre-line}.crm-product-task{margin-top:8px;padding:8px;border-radius:8px;background:#fff3df;border:1px solid #efd29e;font-size:11px;line-height:1.5}.crm-product-task.done{background:#eaf5f0;border-color:#b9ddcf}.crm-product-task-head{display:flex;justify-content:space-between;gap:8px;font-weight:800}.crm-product-task-actions{display:flex;gap:5px;margin-top:6px;flex-wrap:wrap}.crm-product-task-summary{margin-top:9px;font-size:11px;font-weight:800;color:#9a6112}.crm-product-task-summary.clear{color:var(--green)}
 </style>
+<style>#cargoTable td:nth-child(2),#cargoTable td:nth-child(3),#orderFinanceTable td:nth-child(2),#orderFinanceTable td:nth-child(3){white-space:pre-wrap;overflow-wrap:anywhere;min-width:180px;max-width:none}</style>
 </head>
 <body>
 <div class="auth-gate" id="authGate">
@@ -848,8 +849,8 @@ function getShipmentsFromCargoTable(){
       tr.dataset.progress=String(data?.progress||0);
       tr.innerHTML=`
         <td><b>${x.shipmentRef}</b><small style="display:none">${x.product||''} · ${x.port||''} · ${data?.progress||0}/6 stages</small></td>
-        <td>${partyName(exporter[0])}</td>
-        <td>${partyName(importer[0])}</td>
+        <td>${partyName(c[1]?.textContent?.trim())}</td>
+        <td>${partyName(c[2]?.textContent?.trim())}</td>
         <td>${bl[0]||'—'}</td>
         <td>${ac[0]||'Pending'}</td>
         <td>${vp[0]||'—'}</td>
@@ -1480,8 +1481,10 @@ document.getElementById('editSaleAddBuyer')?.addEventListener('click',addBuyerFr
   async function saveShipmentMeta(ref,meta){
     const clean={...(meta||{})};
     if(!window.aureaDb)throw new Error('Please sign in again.');
-    const {error}=await window.aureaDb.from('egypt_shipment_metadata').upsert({shipment_reference:ref,exporter:clean.exporter||null,importer:clean.importer||null,origin_port:clean.originPort||null,unit_price:Number(clean.unitPrice||0),total_amount:Number(clean.totalAmount||0),operational_status:clean.status||null,tasks:clean.tasks||null,data:clean},{onConflict:'shipment_reference'});
+    const {data:saved,error}=await window.aureaDb.from('egypt_shipment_metadata').upsert({shipment_reference:ref,exporter:clean.exporter||null,importer:clean.importer||null,origin_port:clean.originPort||null,unit_price:Number(clean.unitPrice||0),total_amount:Number(clean.totalAmount||0),operational_status:clean.status||null,tasks:clean.tasks||null,data:clean},{onConflict:'shipment_reference'}).select('shipment_reference,exporter,importer,unit_price,total_amount').single();
     if(error)throw error;
+    if(!saved||saved.shipment_reference!==ref||String(saved.exporter||'')!==String(clean.exporter||'')||String(saved.importer||'')!==String(clean.importer||'')||Number(saved.unit_price)!==Number(clean.unitPrice||0)||Number(saved.total_amount)!==Number(clean.totalAmount||0))throw new Error('Commercial details save was not confirmed');
+    window.dispatchEvent(new CustomEvent('egypt-shipment-commercial-saved',{detail:{reference:ref}}));
     localStorage.setItem(`shipmentMeta:${ref}`,JSON.stringify(clean));
     localStorage.setItem(`shipment-meta:${ref}`,JSON.stringify(clean));
     let parties={};try{parties=JSON.parse(localStorage.getItem('aurea:shipmentParties')||'{}')}catch(_){}
@@ -1513,8 +1516,8 @@ document.getElementById('editSaleAddBuyer')?.addEventListener('click',addBuyerFr
     const taskHtml=tasks.length?`<ul class="task-list">${tasks.slice(0,3).map(t=>`<li>${esc(t)}</li>`).join('')}${tasks.length>3?`<li>+${tasks.length-3} more</li>`:''}</ul>`:'<small class="muted">No tasks</small>';
     return `<tr data-id="${esc(x.id)}" data-reference="${esc(x.reference)}" data-product="${esc(x.product||'')}" data-port="${esc(x.arrival_port||'')}" data-vessel="${esc(x.vessel||'')}" data-eta="${esc(x.eta||'')}" data-quantity-kg="${Number(x.quantity_kg||0)}">
       <td><button type="button" class="linkbtn shipment-open">${esc(x.reference)}</button></td>
-      <td>${esc(meta.exporter||'—')}</td>
-      <td>${esc(meta.importer||'—')}</td>
+      <td>${esc(meta.exporter||x.exporter||'—')}</td>
+      <td>${esc(meta.importer||x.importer||'—')}</td>
       <td>${esc(x.bill_of_lading||'—')}</td>
       <td>${acidHtml}</td>
       <td>${esc(x.vessel||'—')}<br><span class="muted">${esc(x.arrival_port||'—')}</span></td>
@@ -2184,7 +2187,6 @@ document.getElementById('expenseAddBank')?.addEventListener('click',()=>{
     function fill(select, role, current){
       select.innerHTML='<option value="">Select Company / Location...</option>';
       profiles
-        .filter(p=>p.role.toLowerCase()===role.toLowerCase())
         .sort((a,b)=>a.company.localeCompare(b.company))
         .forEach(p=>{
           const opt=document.createElement('option');
@@ -2800,7 +2802,7 @@ document.getElementById('expenseAddBank')?.addEventListener('click',()=>{
  const paidFor=r=>payments.filter(p=>p.shipment_ref===r).reduce((sum,p)=>sum+Number(p.amount_usd||0),0);
  function render(){const all=orders(),q=document.getElementById('orderFinanceSearch').value.toLowerCase(),filter=document.getElementById('orderFinanceStatus').value;
   document.getElementById('orderFinanceTotal').textContent=usd(all.reduce((n,o)=>n+o.total,0));document.getElementById('orderFinancePaid').textContent=usd(all.reduce((n,o)=>n+paidFor(o.ref),0));document.getElementById('orderFinanceBalance').textContent=usd(all.reduce((n,o)=>n+Math.max(0,o.total-paidFor(o.ref)),0));document.getElementById('orderFinanceEgp').textContent=egp(payments.reduce((n,p)=>n+Number(p.converted_egp||0),0));
-  tbody.innerHTML=all.filter(o=>{const paid=paidFor(o.ref),status=o.total-paid<=.005?'paid':paid>0?'partial':'open';return(!q||`${o.ref} ${o.importer} ${o.exporter}`.toLowerCase().includes(q))&&(!filter||filter===status)}).map(o=>{const paid=paidFor(o.ref),balance=Math.max(0,o.total-paid),status=balance<=.005?'Paid':paid>0?'Partially Paid':'Open',count=payments.filter(p=>p.shipment_ref===o.ref).length;return `<tr data-ref="${esc(o.ref)}"><td><b>${esc(o.ref)}</b></td><td>${esc(o.importer)}</td><td>${esc(o.exporter)}</td><td>${usd(o.unit)} / MT</td><td>${o.quantity.toLocaleString('en-US',{maximumFractionDigits:3})} MT</td><td>${usd(o.total)}</td><td>${usd(paid)}</td><td>${usd(balance)}</td><td><span class="status ${status==='Open'?'amber':status==='Partially Paid'?'blue':''}">${status}</span><br><small>${count} payment${count===1?'':'s'}</small></td><td><button type="button" class="primary egypt-order-pay" ${!balance&&o.total?'disabled':''}>Register Payment</button></td></tr>`}).join('')||'<tr><td colspan="10" class="muted" style="text-align:center;padding:24px">No orders found.</td></tr>';
+  tbody.innerHTML=all.filter(o=>{const paid=paidFor(o.ref),status=o.total>0&&o.total-paid<=.005?'paid':paid>0?'partial':'open';return(!q||`${o.ref} ${o.importer} ${o.exporter}`.toLowerCase().includes(q))&&(!filter||filter===status)}).map(o=>{const paid=paidFor(o.ref),balance=Math.max(0,o.total-paid),status=o.total<=0?'Commercial details missing':balance<=.005?'Paid':paid>0?'Partially Paid':'Open',count=payments.filter(p=>p.shipment_ref===o.ref).length;return `<tr data-ref="${esc(o.ref)}"><td><b>${esc(o.ref)}</b></td><td>${esc(o.importer)}</td><td>${esc(o.exporter)}</td><td>${usd(o.unit)} / MT</td><td>${o.quantity.toLocaleString('en-US',{maximumFractionDigits:3})} MT</td><td>${usd(o.total)}</td><td>${usd(paid)}</td><td>${usd(balance)}</td><td><span class="status ${status==='Open'||status==='Commercial details missing'?'amber':status==='Partially Paid'?'blue':''}">${status}</span><br><small>${count} payment${count===1?'':'s'}</small></td><td><button type="button" class="primary egypt-order-pay" ${!balance&&o.total?'disabled':''}>Register Payment</button></td></tr>`}).join('')||'<tr><td colspan="10" class="muted" style="text-align:center;padding:24px">No orders found.</td></tr>';
  }
  async function load(){const {data:{session}}=await db.auth.getSession();if(!session){shipments=[];metadata=[];payments=[];ready=false;render();return}const [a,b,c]=await Promise.all([db.from('shipments').select('reference,quantity_kg').limit(1000),db.from('egypt_shipment_metadata').select('shipment_reference,importer,exporter,unit_price,total_amount,data').limit(1000),db.from('egypt_order_payments').select('*').order('created_at',{ascending:true}).limit(1000)]);if(a.error||b.error||c.error){window.notify?.('Could not load order financial: '+(a.error||b.error||c.error).message);return}shipments=a.data||[];metadata=b.data||[];payments=c.data||[];ready=true;render()}
  document.querySelectorAll('.cargo-subtab').forEach(tab=>tab.addEventListener('click',()=>{document.querySelectorAll('.cargo-subtab').forEach(t=>t.classList.toggle('active',t===tab));const financial=tab.dataset.cargoTab==='financial';document.getElementById('cargoShipmentsPanel').classList.toggle('active',!financial);document.getElementById('cargoFinancialPanel').classList.toggle('active',financial);if(financial)load()}));
@@ -2822,6 +2824,7 @@ document.getElementById('expenseAddBank')?.addEventListener('click',()=>{
   }
   await load();window.notify?.(`${count} shipment values imported${failed?`; ${failed} failed`:''}.`);
  });
+ window.addEventListener('egypt-shipment-commercial-saved',()=>load());
  document.getElementById('orderFinanceSearch').addEventListener('input',render);document.getElementById('orderFinanceStatus').addEventListener('change',render);db.auth.onAuthStateChange(()=>setTimeout(load,0));setTimeout(load,0);
 })();
 </script>
