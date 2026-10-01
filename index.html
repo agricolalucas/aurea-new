@@ -2863,5 +2863,19 @@ document.getElementById('expenseAddBank')?.addEventListener('click',()=>{
 })();
 </script>
 
+
+<style>
+#salesTable .invoice-actions{min-width:135px;white-space:normal}#salesTable .invoice-actions details{width:155px}#salesTable .invoice-actions summary{list-style:none;cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:12px;border:1px solid #bfd0ca;border-radius:8px;padding:9px 12px;background:#f4f8f6;color:#174c3e;font-weight:700;font-size:12px}#salesTable .invoice-actions summary::-webkit-details-marker{display:none}#salesTable .invoice-actions summary:after{content:'▾'}#salesTable .invoice-actions details[open] summary:after{content:'▴'}#salesTable .invoice-action-list{display:flex;flex-direction:column;gap:5px;padding:8px 0}#salesTable .invoice-action-list .mini-btn{margin:0;width:100%;text-align:left;padding:9px 10px;white-space:normal;line-height:1.3}#salesTable .invoice-action-list .payment-btn{background:#164f40;color:#fff;border-color:#164f40}#salesTable .invoice-action-list .delete-sale{color:#a03131;border-color:#ead0d0;margin-top:5px}#salesTable .invoice-actions summary:focus-visible{outline:2px solid #267960;outline-offset:2px}
+</style>
+<script>
+(function(){
+ const table=document.getElementById('salesTable'),body=table?.querySelector('tbody');if(!body)return;
+ function organize(){for(const row of body.querySelectorAll('tr[data-invoice]')){const cell=row.lastElementChild;if(!cell||cell.querySelector('.invoice-actions'))continue;const buttons=[...cell.children].filter(el=>el.tagName==='BUTTON');if(!buttons.length)continue;const group=document.createElement('div');group.className='invoice-actions';const menu=document.createElement('details'),summary=document.createElement('summary'),list=document.createElement('div');summary.textContent='Actions';summary.setAttribute('aria-label','Actions for '+row.dataset.invoice);list.className='invoice-action-list';const order=['payment-btn','edit-sale','pdf-btn','loaded-order-pdf','delete-sale'];buttons.sort((a,b)=>order.findIndex(c=>a.classList.contains(c))-order.findIndex(c=>b.classList.contains(c)));for(const b of buttons){if(b.classList.contains('loaded-order-pdf'))b.textContent='Loading Authorization PDF';list.appendChild(b)}menu.append(summary,list);group.appendChild(menu);cell.replaceChildren(group);menu.addEventListener('toggle',()=>{if(menu.open)body.querySelectorAll('.invoice-actions details[open]').forEach(other=>{if(other!==menu)other.open=false})});}}
+ organize();new MutationObserver(organize).observe(body,{childList:true,subtree:true});
+ table.addEventListener('click',e=>{const button=e.target.closest('.invoice-action-list button');if(button)button.closest('details').open=false;});
+ document.addEventListener('keydown',e=>{if(e.key==='Escape')body.querySelectorAll('.invoice-actions details[open]').forEach(menu=>{menu.open=false;menu.querySelector('summary').focus()})});
+ document.addEventListener('click',e=>{if(!e.target.closest('.invoice-actions'))body.querySelectorAll('.invoice-actions details[open]').forEach(menu=>menu.open=false)});
+})();
+</script>
 </body>
 </html>
