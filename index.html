@@ -318,7 +318,7 @@
 <div class="all-shipments-table-wrap">
 <table class="all-shipments-table">
 <thead><tr>
-<th>Order</th><th>Exporter</th><th>Importer</th><th>B/L</th><th>ACID Number</th><th>Vessel</th><th>Port</th><th>ETA</th><th>Product</th><th>Qty</th><th>Supplier and shipping originals</th><th>Action</th>
+<th>Order</th><th>Exporter</th><th>Importer</th><th>B/L</th><th>ACID Number</th><th>Vessel</th><th>Port</th><th>ETA</th><th>Product</th><th>Qty</th><th>Action</th>
 </tr></thead>
 <tbody id="importFileList"></tbody>
 </table>
@@ -881,7 +881,6 @@ function getShipmentsFromCargoTable(){
         <td>${eta[0]||'—'}</td>
         <td class="import-product-cell">${partyName(row?.dataset.product||x.product||'—').replace('class="party-name"','class="import-product-name"')}</td>
         <td>${quantityText}</td>
-        <td><div data-originals-progress>Loading documents...</div><button type="button" class="mini-btn supplier-review">Attach / review</button></td>
         <td><button type="button" class="mini-btn shipment-open-btn">Open</button></td>`;
       list.appendChild(tr);
     });
