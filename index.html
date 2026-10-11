@@ -327,12 +327,11 @@
           <div class="sequence" id="shipmentSequencePanel">
           <div class="sequence-nav-card">
             <div class="sequence-open-head">
-              <div><b id="openShipmentTitle">Import Document Sequence</b><small class="muted">All 6 stages for the selected shipment</small></div>
+              <div><b id="openShipmentTitle">Import Document Sequence</b><small class="muted">All 5 stages for the selected shipment</small></div>
               <button type="button" class="mini-btn" id="closeShipmentSequence">✕ Close</button>
             </div>
             <div class="import-stage-tabs" id="importStageTabs">
             <button type="button" class="import-stage-tab active" data-stage="0">Pre-shipment registration & Bank / FX</button>
-            <button type="button" class="import-stage-tab" data-stage="1">Supplier and shipping originals</button>
             <button type="button" class="import-stage-tab" data-stage="2">Carrier arrival and delivery order</button>
             <button type="button" class="import-stage-tab" data-stage="3">Customs declaration and duties</button>
             <button type="button" class="import-stage-tab" data-stage="4">Inspection and regulatory approvals</button>
@@ -377,7 +376,7 @@
 </article>
 
 <article class="card stage" id="supplierOriginalsStage">
-  <div class="stage-head"><span class="stage-no">2</span><div><h3>Supplier and shipping originals</h3><p>Control required originals, quantities, corrections and attachments.</p></div><span class="status amber">Complete step</span></div>
+  <div class="stage-head"><span class="stage-no">2</span><div><h3>Required Import Documents</h3><p>Control required originals, quantities, corrections and attachments.</p></div><span class="status amber">Complete step</span></div>
   <div class="stage-docs">
     <div class="originals-summary">
       <div class="originals-summary-card"><small>Pending / Correction</small><b id="originalsPendingCount">6</b></div>
@@ -825,13 +824,13 @@ function initImportStageTabs(){
   const tabs=[...document.querySelectorAll('#importStageTabs .import-stage-tab')];
   const stages=[...document.querySelectorAll('#documentSequenceWrap .sequence > article.stage')];
   function activate(index){
-    tabs.forEach((t,i)=>t.classList.toggle('active',i===index));
+    tabs.forEach(t=>t.classList.toggle('active',Number(t.dataset.stage)===index));
     stages.forEach((st,i)=>st.classList.toggle('active-stage',i===index));
     localStorage.setItem('aureaImportActiveStage',String(index));
   }
-  tabs.forEach((t,i)=>t.onclick=()=>activate(i));
+  tabs.forEach(t=>t.onclick=()=>activate(Number(t.dataset.stage)));
   const saved=Math.min(6,Math.max(0,Number(localStorage.getItem('aureaImportActiveStage')||0)));
-  activate(saved);
+  activate(tabs.some(t=>Number(t.dataset.stage)===saved)?saved:0);
 }
 
 function getShipmentsFromCargoTable(){
@@ -2893,7 +2892,7 @@ document.getElementById('expenseAddBank')?.addEventListener('click',()=>{
  const originalList=document.querySelector('.originals-list');if(!originalList)return;
  const host=originalList.parentElement;
  const launch=document.createElement('button');launch.type='button';launch.className='primary';launch.textContent='Attach / review supplier and shipping originals';host.insertBefore(launch,originalList);
- const modal=document.createElement('div');modal.id='supplierOriginalsModal';modal.className='modal';modal.setAttribute('role','dialog');modal.setAttribute('aria-modal','true');modal.innerHTML='<div class="dialog"><div class="dialog-head"><div><h3>Supplier and shipping originals</h3><p>Attach each document separately. Saved files remain available to open.</p></div><button type="button" class="close supplier-close">×</button></div><div style="padding:20px"><div class="originals-summary"><div class="originals-summary-card"><small>Shipment</small><b id="supplierDocRef"></b></div><div class="originals-summary-card"><small>Received</small><b id="supplierDocReceived"></b></div><div class="originals-summary-card"><small>Pending attachment</small><b id="supplierDocPending"></b></div></div><div id="supplierModalList"></div></div></div>';
+ const modal=document.createElement('div');modal.id='supplierOriginalsModal';modal.className='modal';modal.setAttribute('role','dialog');modal.setAttribute('aria-modal','true');modal.innerHTML='<div class="dialog"><div class="dialog-head"><div><h3>Required Import Documents</h3><p>Attach each document separately. Saved files remain available to open.</p></div><button type="button" class="close supplier-close">×</button></div><div style="padding:20px"><div class="originals-summary"><div class="originals-summary-card"><small>Shipment</small><b id="supplierDocRef"></b></div><div class="originals-summary-card"><small>Received</small><b id="supplierDocReceived"></b></div><div class="originals-summary-card"><small>Pending attachment</small><b id="supplierDocPending"></b></div></div><div id="supplierModalList"></div></div></div>';
  document.getElementById('documentSequenceWrap').appendChild(modal);modal.querySelector('#supplierModalList').appendChild(originalList);
  let currentRef='',generation=0;const metadata=new Map();
  const rowKey=row=>row.querySelector('[type=file]').dataset.docField.replace(/-file$/,'');
