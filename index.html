@@ -1357,7 +1357,7 @@ document.getElementById('editSaleAddBuyer')?.addEventListener('click',addBuyerFr
     const oldQty=Number(row.dataset.quantity||0),newQty=Number(d.quantity||0),ref=row.dataset.reference;
     const received=getReceivingTickets(ref).reduce((sum,t)=>sum+(Number(t.weight)||0),0);
     const soldOther=[...document.querySelectorAll('#salesTable tbody tr')].filter(r=>r!==row&&r.dataset.reference===ref).reduce((sum,r)=>sum+Number(r.dataset.quantity||0),0);
-    const maxQty=Math.max(oldQty,received-soldOther);
+    const maxQty=Math.max(0,received-soldOther);
     if(newQty!==oldQty&&newQty>maxQty){notify(`Quantity exceeds available inventory. Maximum for this invoice: ${maxQty.toLocaleString('en-US')} kg`);return;}
     const oldInvoice=row.dataset.invoice,total=window.egyptInvoiceFinal(newQty*Number(d.unitPrice||0),d),paid=(salesPayments.get(oldInvoice)||[]).reduce((sum,p)=>sum+Number(p.paymentAmount||0),0);
     if(d.invoice!==oldInvoice){notify('Keep the existing invoice number when editing.');return;}
