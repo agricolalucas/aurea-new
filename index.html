@@ -210,7 +210,9 @@ window.egyptFreightFormUSD=function(f){return window.egyptFreightUSD({freight:f.
 </script><script>
 window.egyptInvoiceFreightEGP=d=>{const a=Number(d.salesFreight||0);return d.salesFreightCurrency==='USD'&&a>0?(Number(d.salesFreightRate)>0?a*Number(d.salesFreightRate):NaN):a};
 window.egyptInvoiceFreightForm=f=>window.egyptInvoiceFreightEGP(Object.fromEntries(new FormData(f)));
-</script></head>
+</script><style>
+.invoice-pricing-panel{display:block!important;border:1px solid #cfddd8;border-radius:12px;padding:16px!important;background:#f7faf8;margin:2px 0 12px;min-width:0}.invoice-pricing-heading{display:flex;justify-content:space-between;gap:12px;margin-bottom:14px;color:#173d35}.invoice-pricing-heading small{font-size:12px;color:#657c76}.invoice-pricing-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px 16px}.invoice-pricing-fields .field{margin:0!important;min-width:0}.invoice-pricing-fields [hidden]{display:none!important}.invoice-total-summary{display:flex;flex-direction:column;gap:8px;margin-top:16px;padding-top:14px;border-top:1px solid #d4e1db;text-align:right;color:#476158;font-size:14px}.invoice-total-summary>b{display:block;background:#e0eee7;color:#123e30;border-radius:8px;padding:13px 14px;font-size:20px;margin-top:3px}.invoice-total-summary>div{display:block;padding:0 14px}.invoice-total-summary span{font-variant-numeric:tabular-nums}@media(max-width:560px){.invoice-pricing-fields{grid-template-columns:1fr}.invoice-pricing-heading{flex-direction:column;gap:4px}.invoice-total-summary>b{font-size:18px}}
+</style></head>
 <body>
 <div class="auth-gate" id="authGate">
   <div class="auth-card" id="loginCard">
@@ -3121,7 +3123,26 @@ $('shipmentPaymentsRefresh').onclick=load;for(const id of ['shipmentPaymentsSear
 )();
 </script><script>
 (()=>{for(const id of ['saleForm','editSaleForm']){const f=document.getElementById(id),amount=f.elements.salesFreight,cur=f.elements.salesFreightCurrency,rate=f.elements.salesFreightRate;function validate(){const needs=cur.value==='USD'&&Number(amount.value)>0;rate.required=needs;rate.setCustomValidity(needs&&!(Number(rate.value)>0)?'Enter the EGP per USD exchange rate.':'');if(id==='editSaleForm'){const row=[...document.querySelectorAll('#salesTable tbody tr')].find(r=>r.dataset.invoice===f.elements.originalInvoice.value);let items=[];try{items=JSON.parse(row?.dataset.items||'[]')}catch{}const goods=items.length>1?items.reduce((n,i)=>n+Number(i.total||0),0):Number(f.elements.quantity.value||0)*Number(f.elements.unitPrice.value||0);const total=goods+window.egyptInvoiceFreightForm(f);document.getElementById('editSaleProductsSubtotal').textContent=goods.toFixed(2);document.getElementById('editSaleFreightSubtotal').textContent=window.egyptInvoiceFreightForm(f).toFixed(2);document.getElementById('editSalesFreightTotal').textContent=Number.isFinite(total)?total.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}):'Enter exchange rate';}}f.addEventListener('input',validate);f.addEventListener('change',validate);f.addEventListener('submit',e=>{validate();if(!f.reportValidity()){e.preventDefault();e.stopImmediatePropagation()}},true);}})();
-</script></body>
+</script><script>
+(()=>{
+const esc='';
+for(const id of ['saleForm','editSaleForm']){
+ const form=document.getElementById(id);if(!form)continue;
+ const edit=id==='editSaleForm',freight=form.elements.salesFreight,currency=form.elements.salesFreightCurrency,rate=form.elements.salesFreightRate;
+ if(!freight||!currency||!rate)continue;
+ const panel=document.createElement('section');panel.className='invoice-pricing-panel field full';
+ panel.innerHTML='<div class="invoice-pricing-heading"><b>'+(edit?'Product value & freight':'Freight')+'</b><small>Invoice amounts in EGP</small></div><div class="invoice-pricing-fields"></div>';
+ const fields=panel.querySelector('.invoice-pricing-fields');
+ if(edit){const qty=form.elements.quantity.closest('.field'),unit=form.elements.unitPrice.closest('.field');qty.before(panel);fields.append(qty,unit);}else document.getElementById('extraSaleItems').after(panel);
+ fields.append(freight.closest('.field'),currency.closest('.field'),rate.closest('.field'));
+ freight.closest('.field').querySelector('label').textContent='Freight amount';currency.closest('.field').querySelector('label').textContent='Currency';rate.closest('.field').querySelector('label').textContent='Exchange rate · EGP / USD';
+ const summary=document.getElementById(edit?'editSalesFreightTotal':'saleItemsGrandTotal').closest('.field');summary.className='invoice-total-summary';summary.removeAttribute('style');panel.append(summary);
+ function rateVisibility(){rate.closest('.field').hidden=currency.value!=='USD';}currency.addEventListener('change',rateVisibility);currency.addEventListener('input',rateVisibility);new MutationObserver(rateVisibility).observe(form.closest('.modal'),{attributes:true,attributeFilter:['class']});rateVisibility();
+}
+})();
+
+</script>
+</body>
 </html>
 
 
