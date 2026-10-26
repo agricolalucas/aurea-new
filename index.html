@@ -1357,11 +1357,13 @@ document.getElementById('editSaleAddBuyer')?.addEventListener('click',addBuyerFr
     const oldQty=Number(row.dataset.quantity||0),newQty=Number(d.quantity||0),ref=row.dataset.reference;
     const received=getReceivingTickets(ref).reduce((sum,t)=>sum+(Number(t.weight)||0),0);
     const soldOther=[...document.querySelectorAll('#salesTable tbody tr')].filter(r=>r!==row&&r.dataset.reference===ref).reduce((sum,r)=>sum+Number(r.dataset.quantity||0),0);
-    const maxQty=Math.max(0,received-soldOther);
+    const maxQty=Math.max(oldQty,received-soldOther);
     if(newQty!==oldQty&&newQty>maxQty){notify(`Quantity exceeds available inventory. Maximum for this invoice: ${maxQty.toLocaleString('en-US')} kg`);return;}
     const oldInvoice=row.dataset.invoice,total=window.egyptInvoiceFinal(newQty*Number(d.unitPrice||0),d),paid=(salesPayments.get(oldInvoice)||[]).reduce((sum,p)=>sum+Number(p.paymentAmount||0),0);
     if(d.invoice!==oldInvoice){notify('Keep the existing invoice number when editing.');return;}
-    try{await saveSale({...d,items:JSON.parse(row.dataset.items||'[]'),total:JSON.parse(row.dataset.items||'[]').length>1?window.egyptInvoiceFinal(JSON.parse(row.dataset.items).reduce((n,i)=>n+Number(i.total||0),0),d):total,invoiceBankId:row.dataset.invoiceBankId||'',invoiceBankDetails:row.dataset.invoiceBankDetails||'',paid})}catch(error){notify('Could not update invoice: '+error.message);return;}
+    const items=JSON.parse(row.dataset.items||'[]');
+    if(items.length<=1){items.splice(0,items.length,{...(items[0]||{}),reference:d.reference,product:d.product,lot:d.lot,quantity:newQty,unitPrice:Number(d.unitPrice||0),total:newQty*Number(d.unitPrice||0)});}
+    try{await saveSale({...d,items,total:items.length>1?window.egyptInvoiceFinal(items.reduce((n,i)=>n+Number(i.total||0),0),d):total,invoiceBankId:row.dataset.invoiceBankId||'',invoiceBankDetails:row.dataset.invoiceBankDetails||'',paid})}catch(error){notify('Could not update invoice: '+error.message);return;}
     await loadSales();
     toggleModal(editSaleModal,false);
     renderInventory();syncSalesShipmentOptions();updateSalesReceivable();updateSalesVolume30();updateSalesInvoicedMonth();
