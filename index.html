@@ -2588,7 +2588,15 @@ const filters=[['Filter','Value'],...['expenseFilterCurrency','expenseFilterSupp
   if(typeof fillShipmentPartySelects==='function')fillShipmentPartySelects();
   document.getElementById('profileSearch')?.dispatchEvent(new Event('input'));
  }
- async function load(){const {data:{session}}=await db.auth.getSession();if(!session){rows=[];render();return;}const {data,error:e}=await db.from('egypt_profiles').select('id,company,profile_type,country,contact,email,phone,tax_id,status,data').order('created_at',{ascending:true}).limit(1000);if(e){error(e);return}rows=(data||[]).map(x=>({...x,data:{...(x.data||{}),company:x.company||x.data?.company,type:x.profile_type||x.data?.type,country:x.country||x.data?.country,contact:x.contact||x.data?.contact,email:x.email||x.data?.email,phone:x.phone||x.data?.phone,taxId:x.tax_id||x.data?.taxId,status:x.status||x.data?.status}}));render()}
+ let profileLoadPromise=null;
+ const profileFeedback=document.createElement('div');profileFeedback.style.cssText='margin:10px 0;font-size:13px';profileFeedback.setAttribute('role','status');const profileMessage=document.createElement('span'),profileRetry=document.createElement('button');profileRetry.type='button';profileRetry.className='mini-btn';profileRetry.textContent='Refresh Users';profileRetry.style.marginLeft='10px';profileFeedback.append(profileMessage,profileRetry);document.getElementById('profileTable').closest('.table-card').before(profileFeedback);
+ function load(){if(profileLoadPromise)return profileLoadPromise;profileLoadPromise=loadProfilesOnce().finally(()=>{profileLoadPromise=null;profileRetry.disabled=false;});return profileLoadPromise;}
+ async function loadProfilesOnce(){profileRetry.disabled=true;profileMessage.textContent='Loading Users / Profiles…';try{
+ const {data:{session},error:sessionError}=await db.auth.getSession();if(sessionError)throw sessionError;if(!session){rows=[];render();profileMessage.textContent='Sign in to load Users / Profiles.';return;}
+ const next=[];for(let from=0;;from+=25){let result,last;for(let attempt=0;attempt<3;attempt++){try{result=await db.from('egypt_profiles').select('id,company,profile_type,country,contact,email,phone,tax_id,status,data').order('id').range(from,from+24);if(result.error)throw result.error;last=null;break;}catch(e){last=e;const transient=/fetch|network|timeout|load failed/i.test(e.message||String(e))||e.code==='57014';if(!transient||attempt===2)throw e;await new Promise(resolve=>setTimeout(resolve,500*(attempt+1)));}}if(last)throw last;next.push(...result.data);if(result.data.length<25)break;}
+ rows=next.map(x=>({...x,data:{...(x.data||{}),company:x.company||x.data?.company,type:x.profile_type||x.data?.type,country:x.country||x.data?.country,contact:x.contact||x.data?.contact,email:x.email||x.data?.email,phone:x.phone||x.data?.phone,taxId:x.tax_id||x.data?.taxId,status:x.status||x.data?.status}}));render();profileMessage.textContent=rows.length+' Users / Profiles loaded.';
+ }catch(e){console.error(e);profileMessage.textContent='Could not refresh Users / Profiles: '+(e.message||e)+'. '+(rows.length?'Previously loaded records are still displayed. ':'')+'Check your connection and click Refresh Users.';}}
+ profileRetry.onclick=load;
  window.aureaProfiles=()=>rows.map(x=>x.data);
  function countryCallingCode(country){
   const m={'egypt':'+20','brazil':'+55','brasil':'+55','india':'+91','turkey':'+90','türkiye':'+90','united arab emirates':'+971','uae':'+971','china':'+86','saudi arabia':'+966','pakistan':'+92','bangladesh':'+880','vietnam':'+84','indonesia':'+62','malaysia':'+60','singapore':'+65','thailand':'+66','united states':'+1','usa':'+1','canada':'+1','mexico':'+52','argentina':'+54','paraguay':'+595','uruguay':'+598','chile':'+56','peru':'+51','colombia':'+57','ecuador':'+593','bolivia':'+591','portugal':'+351','spain':'+34','france':'+33','germany':'+49','italy':'+39','united kingdom':'+44','uk':'+44','netherlands':'+31','belgium':'+32','switzerland':'+41','greece':'+30','morocco':'+212','algeria':'+213','tunisia':'+216','south africa':'+27','nigeria':'+234','kenya':'+254','ghana':'+233','japan':'+81','south korea':'+82','australia':'+61'};
@@ -2667,9 +2675,12 @@ const filters=[['Filter','Value'],...['expenseFilterCurrency','expenseFilterSupp
   }catch(err){error(err)}
   finally{submitButton.disabled=false;submitButton.textContent=modal.classList.contains('open')?originalLabel:'Create Profile'}
  },true);
- db.auth.onAuthStateChange(()=>setTimeout(load,0));setTimeout(load,0);
- window.addEventListener('focus',load);
- setInterval(()=>{if(!document.hidden)load()},15000);
+ db.auth.onAuthStateChange((event)=>{if(event==='SIGNED_IN'||event==='SIGNED_OUT'||event==='INITIAL_SESSION')setTimeout(load,0);});setTimeout(load,0);
+ const profilesVisible=()=>document.getElementById('profiles')?.classList.contains('active');
+ window.addEventListener('focus',()=>{if(profilesVisible())load();});
+ window.addEventListener('online',()=>{if(profilesVisible())load();});
+ document.querySelector('[data-view="profiles"]')?.addEventListener('click',load);
+ setInterval(()=>{if(!document.hidden&&profilesVisible())load()},60000);
 })();
 </script>
 
