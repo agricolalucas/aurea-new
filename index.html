@@ -1149,24 +1149,7 @@ initImportStageTabs();
 
 
 
-<style>
-#cargoShipmentsPanel .data-table th,#cargoFinancialPanel .data-table th{padding:6px 8px;font-size:10px;line-height:1.2}
-#cargoShipmentsPanel .data-table td,#cargoFinancialPanel .data-table td{padding:5px 8px;font-size:12px;line-height:1.25;vertical-align:middle}
-#cargoShipmentsPanel .mini-btn,#cargoFinancialPanel .mini-btn,#cargoFinancialPanel td button.primary{padding:4px 7px;font-size:11px;line-height:1.2;border-radius:5px}
-#cargoShipmentsPanel .status,#cargoFinancialPanel .status{padding:3px 6px;font-size:10px}
-#cargoTable .task-list{margin:3px 0 0;padding-left:14px;font-size:10px;line-height:1.2}
-#cargoTable .task-list li{margin:0}
-#cargoTable td small,#cargoTable .muted{font-size:10px;line-height:1.2}
-#cargoTable .amount-cell small{margin-top:1px}
-#cargoTable tr.cargo-paid>td,#orderFinanceTable tr.cargo-paid>td{background:#e5f3e9!important;color:#175c3b}
-#cargoTable tr.cargo-paid:hover>td,#orderFinanceTable tr.cargo-paid:hover>td{background:#d7ecde!important}
-#cargoTable tr.cargo-paid>td:first-child,#orderFinanceTable tr.cargo-paid>td:first-child{box-shadow:inset 3px 0 #21856b}
-</style><script>
-(()=>{const body=document.querySelector('#cargoTable tbody');if(!body)return;
-window.egyptPaintPaidShipments=()=>{for(const row of body.querySelectorAll('tr[data-reference]')){const paid=window.egyptPaidShipmentRefs?.has(row.dataset.reference)||false;row.classList.toggle('cargo-paid',paid);if(paid)row.setAttribute('aria-label',row.dataset.reference+' · Paid');else row.removeAttribute('aria-label');}};
-new MutationObserver(window.egyptPaintPaidShipments).observe(body,{childList:true});window.egyptPaintPaidShipments();
-})();
-</script></body></html>`);w.document.close();toggleModal(draftModal,false);setTimeout(()=>w.print(),400)};
+</body></html>`);w.document.close();toggleModal(draftModal,false);setTimeout(()=>w.print(),400)};
   document.getElementById('refreshFx').onclick=async()=>{const btn=document.getElementById('refreshFx');btn.disabled=true;btn.textContent='Refreshing…';try{const res=await fetch('https://www.banquemisr.com/Home/CAPITAL%20MARKETS/Exchange%20Rates%20and%20Currencies');const html=await res.text();const plain=html.replace(/<[^>]+>/g,' ').replace(/\s+/g,' ');const match=plain.match(/US Dollar\s+(\d+\.\d+)\s+(\d+\.\d+)/i);if(match){document.querySelector('.fx-rate b').textContent=`Buy ${match[1]} · Sell ${match[2]} EGP`;document.querySelector('.fx-rate small:last-child').textContent=`Retrieved ${new Date().toLocaleString('en-GB')}`;notify('Banque Misr USD rate updated')}else throw Error('Rate not found')}catch(err){notify('Live retrieval was blocked. Open the official Banque Misr source to verify the rate.')}finally{btn.disabled=false;btn.textContent='↻ Refresh rate'}};
   const saleModal=document.getElementById('saleModal'),paymentModal=document.getElementById('paymentModal'),profileModal=document.getElementById('profileModal');
   const stockRows=()=>[...document.querySelectorAll('[data-stock-lot]')];const money=n=>Number(n).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});const safe=s=>String(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -3317,6 +3300,23 @@ const form=select.closest('form'),modal=select.closest('.modal');form?.addEventL
 function relevant(s){return !s.multiple;}
 function scan(root){if(root.nodeType!==1&&root!==document)return;if(root.matches?.('select')&&relevant(root))enhance(root);root.querySelectorAll?.('select').forEach(s=>{if(relevant(s))enhance(s)});}
 scan(document);new MutationObserver(records=>{for(const r of records)for(const n of r.addedNodes)scan(n);}).observe(document.body,{childList:true,subtree:true});
+})();
+</script><style>
+#cargoShipmentsPanel .data-table th,#cargoFinancialPanel .data-table th{padding:6px 8px;font-size:10px;line-height:1.2}
+#cargoShipmentsPanel .data-table td,#cargoFinancialPanel .data-table td{padding:5px 8px;font-size:12px;line-height:1.25;vertical-align:middle}
+#cargoShipmentsPanel .mini-btn,#cargoFinancialPanel .mini-btn,#cargoFinancialPanel td button.primary{padding:4px 7px;font-size:11px;line-height:1.2;border-radius:5px}
+#cargoShipmentsPanel .status,#cargoFinancialPanel .status{padding:3px 6px;font-size:10px}
+#cargoTable .task-list{margin:3px 0 0;padding-left:14px;font-size:10px;line-height:1.2}
+#cargoTable .task-list li{margin:0}
+#cargoTable td small,#cargoTable .muted{font-size:10px;line-height:1.2}
+#cargoTable .amount-cell small{margin-top:1px}
+#cargoTable tr.cargo-paid>td,#orderFinanceTable tr.cargo-paid>td{background:#e5f3e9!important;color:#175c3b}
+#cargoTable tr.cargo-paid:hover>td,#orderFinanceTable tr.cargo-paid:hover>td{background:#d7ecde!important}
+#cargoTable tr.cargo-paid>td:first-child,#orderFinanceTable tr.cargo-paid>td:first-child{box-shadow:inset 3px 0 #21856b}
+</style><script>
+(()=>{const body=document.querySelector('#cargoTable tbody');if(!body)return;
+window.egyptPaintPaidShipments=()=>{for(const row of body.querySelectorAll('tr[data-reference]')){const paid=window.egyptPaidShipmentRefs?.has(row.dataset.reference)||false;row.classList.toggle('cargo-paid',paid);if(paid)row.setAttribute('aria-label',row.dataset.reference+' · Paid');else row.removeAttribute('aria-label');}};
+new MutationObserver(window.egyptPaintPaidShipments).observe(body,{childList:true});window.egyptPaintPaidShipments();
 })();
 </script></body>
 </html>
