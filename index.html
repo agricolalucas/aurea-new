@@ -1000,6 +1000,12 @@ initImportStageTabs();
     receivingCache.clear();for(const [ref,tickets] of next)receivingCache.set(ref,tickets);
     receivingReady=true;renderReceivingTickets();renderInventory();
   }
+  const refreshTickets=document.createElement('button');refreshTickets.type='button';refreshTickets.className='secondary';refreshTickets.textContent='Refresh tickets';document.querySelector('#estoque .intro').append(refreshTickets);
+  refreshTickets.onclick=async()=>{refreshTickets.disabled=true;refreshTickets.textContent='Refreshing tickets…';try{await loadReceivingTickets();}finally{refreshTickets.disabled=false;refreshTickets.textContent='Refresh tickets';}};
+  function refreshVisibleTickets(){if(document.visibilityState!=='hidden'&&(document.getElementById('estoque').classList.contains('active')||document.getElementById('documentos').classList.contains('active')))loadReceivingTickets();}
+  window.addEventListener('focus',refreshVisibleTickets);document.addEventListener('visibilitychange',refreshVisibleTickets);
+  document.querySelectorAll('[data-view="estoque"],[data-view="documentos"]').forEach(b=>b.addEventListener('click',()=>setTimeout(refreshVisibleTickets,0)));
+  setInterval(refreshVisibleTickets,60000);
   window.addEventListener('egypt-reconciliation-status-ready',loadSales);
   setTimeout(()=>{const db=window.aureaDb;if(!db)return;db.auth.onAuthStateChange(()=>setTimeout(loadReceivingTickets,0));loadReceivingTickets()},0);
   async function persistReceivingTicket(ref,record,existing){
