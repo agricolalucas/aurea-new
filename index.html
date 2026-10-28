@@ -940,10 +940,12 @@ initImportStageTabs();
       port:row.dataset.port||''
     };
   }
+  function inventoryOrderKey(value){return String(value||'').trim().replace(/\s+/g,' ').toUpperCase();}
+  function inventorySameOrder(a,b){const x=inventoryOrderKey(a),y=inventoryOrderKey(b);if(x===y)return true;const base=v=>v.replace(/\s*\([^()]*\)\s*$/,'').trim();if(base(x)!==base(y))return false;const matches=[...document.querySelectorAll('#cargoTable tbody tr[data-reference]')].filter(r=>base(inventoryOrderKey(r.dataset.reference))===base(x));return matches.length===1;}
   function getLocalSoldWeight(ref){
     let total=0;
     document.querySelectorAll('#salesTable tbody tr').forEach(row=>{
-      let items=[];try{items=JSON.parse(row.dataset.items||'[]')}catch(_){}if(items.length)total+=items.filter(i=>i.reference===ref).reduce((sum,i)=>sum+Number(i.quantity||0),0);else if((row.dataset.reference||'')===ref)total+=Number(row.dataset.quantity||0);
+      let items=[];try{items=JSON.parse(row.dataset.items||'[]')}catch(_){}if(items.length)total+=items.filter(i=>inventorySameOrder(i.reference,ref)).reduce((sum,i)=>sum+Number(i.quantity||0),0);else if(inventorySameOrder(row.dataset.reference,ref))total+=Number(row.dataset.quantity||0);
     });
     return total;
   }
@@ -982,7 +984,7 @@ initImportStageTabs();
 
   function receivingKey(ref){return `aureaReceivingTickets:${ref}`;}
   const receivingCache=new Map();let receivingReady=false;
-  function getReceivingTickets(ref){return receivingCache.get(ref)||[];}
+  function getReceivingTickets(ref){const exact=receivingCache.get(ref);if(exact?.length)return exact;const candidates=[...receivingCache.keys()].filter(key=>inventorySameOrder(key,ref));if(!candidates.length)return [];const invoiceRefs=[...document.querySelectorAll('#salesTable tbody tr[data-invoice]')].map(r=>r.dataset.reference);const preferred=candidates.find(key=>invoiceRefs.includes(key))||candidates[0];return receivingCache.get(preferred)||[];}
   let receivingLoadPromise=null;function loadReceivingTickets(){if(receivingLoadPromise)return receivingLoadPromise;receivingLoadPromise=loadReceivingTicketsOnce().finally(()=>{receivingLoadPromise=null});return receivingLoadPromise;}
   async function loadReceivingTicketsOnce(){
     const db=window.aureaDb;if(!db)return;
@@ -1035,7 +1037,7 @@ initImportStageTabs();
     document.getElementById('selectedShipmentReceived').textContent=`${total.toLocaleString('en-US')} kg`;
   }
   let inventorySoldOpenRef='',inventoryReceivedOpenRef='';
-  function soldInvoiceRows(ref){return [...document.querySelectorAll('#salesTable tbody tr[data-invoice]')].filter(row=>{let items=[];try{items=JSON.parse(row.dataset.items||'[]')}catch(_){}return items.length?items.some(i=>i.reference===ref):row.dataset.reference===ref})}
+  function soldInvoiceRows(ref){return [...document.querySelectorAll('#salesTable tbody tr[data-invoice]')].filter(row=>{let items=[];try{items=JSON.parse(row.dataset.items||'[]')}catch(_){}return items.length?items.some(i=>inventorySameOrder(i.reference,ref)):inventorySameOrder(row.dataset.reference,ref)})}
   function renderInventory(){
     const tbody=document.querySelector('#inventoryTable tbody');
     if(!tbody) return;
