@@ -285,7 +285,7 @@ window.egyptInvoiceFreightForm=f=>window.egyptInvoiceFreightEGP(Object.fromEntri
       <div class="top-actions"><span class="session-chip" id="sessionUser"></span><button class="secondary" id="logoutBtn" type="button" style="display:none">Logout</button><input class="search" id="globalSearch" placeholder="Buscar carga, ACID ou cliente…"><button class="primary" id="newBtn">+ Nova carga</button></div>
     </header>
     <div class="content">
-      <section class="view active" id="dashboard">
+      <section class="view active" id="dashboard"><div id="dashboardMissingTicketAlert" class="missing-ticket-alert" hidden role="status"><strong>Ticket de pesagem pendente</strong><p class="missing-ticket-summary"></p><button type="button" class="mini-btn" onclick="go('estoque')">Ver ordens no Inventory Control</button></div>
         <div class="intro"><div><h2>Import Operations Control</h2><p>Monitor current import operations, arrivals and available inventory.</p></div><span class="date-chip">15 setembro 2026 · Cairo</span></div>
         <div class="kpis">
           <div class="card kpi"><div class="kpi-head"><span>Shipments in Transit</span><span class="iconbox">▣</span></div><b id="dashboardTransitCount">0</b><span class="trend" id="dashboardTransitTrend">Based on shipments with future ETA</span></div>
@@ -437,9 +437,9 @@ window.egyptInvoiceFreightForm=f=>window.egyptInvoiceFreightEGP(Object.fromEntri
         </div></div>
       </section>
 
-      <section class="view" id="estoque">
+      <section class="view" id="estoque"><div id="inventoryMissingTicketAlert" class="missing-ticket-alert" hidden role="status"><strong>Ticket de pesagem pendente</strong><p class="missing-ticket-summary"></p><button type="button" class="mini-btn" onclick="go('estoque')">Ver ordens no Inventory Control</button></div>
   <div class="intro">
-    <div><h2>Inventory Control</h2><p>Only shipments with all 6 Import Document Sequence stages completed are released to inventory.</p></div>
+    <div><h2>Inventory Control</h2><p>All registered orders · Orders without receiving weight tickets are highlighted in red.</p></div>
   </div>
   <div class="stock-summary">
     <div class="card stock-main"><p>Total Received</p><b id="inventoryTotalReceived">0 kg</b><p>Sum of all receiving tickets registered under Inspection and regulatory approvals.</p></div>
@@ -1040,13 +1040,14 @@ initImportStageTabs();
     const tbody=document.querySelector('#inventoryTable tbody');
     if(!tbody) return;
     tbody.innerHTML='';
-    let grandTotal=0,totalTickets=0,inventoryRows=0;
-    [...document.querySelectorAll('#importFileList .file-item')].forEach(item=>{
-      const ref=shipmentRefFromItem(item);
+    let grandTotal=0,totalTickets=0,inventoryRows=0;const missingTickets=[];
+    const shipmentRefs=[...new Set([...document.querySelectorAll('#cargoTable tbody tr[data-reference]')].map(r=>r.dataset.reference).filter(Boolean))];
+    shipmentRefs.forEach(ref=>{
+      const item=[...document.querySelectorAll('#importFileList .file-item')].find(x=>shipmentRefFromItem(x)===ref);
       const tickets=getReceivingTickets(ref);
-      if(!tickets.length) return; // Inventory appears as soon as a receiving ticket is posted.
+      if(receivingReady&&!tickets.length)missingTickets.push(ref);
       inventoryRows++;
-      const parts=(item.querySelector('small')?.textContent||'').split(' · ');
+      const parts=(item?.querySelector('small')?.textContent||'').split(' · ');
       const cargo=getCargoShipmentData(ref);
       const product=cargo.product||parts[0]||'';
       const received=tickets.reduce((sum,t)=>sum+(Number(t.weight)||0),0);
@@ -1055,8 +1056,8 @@ initImportStageTabs();
       const latest=[...tickets].reverse().find(t=>t.warehouse||t.lot||t.expiry)||{};
       const lot=latest.lot||'—',warehouse=latest.warehouse||'—',expiry=latest.expiry||'—';
       grandTotal+=received; totalTickets+=tickets.length;
-      const tr=document.createElement('tr');
-      tr.innerHTML=`<td><b>${product}</b><br><span class="muted">${lot}</span></td><td><b>${ref}</b></td><td>${warehouse}</td><td>${cargo.weightBL.toLocaleString('en-US')} kg</td><td><button type="button" class="mini-btn inventory-received-detail" data-ref="${safe(ref)}" aria-expanded="${inventoryReceivedOpenRef===ref}"><b>${received.toLocaleString('en-US')} kg</b><br>${tickets.length} ticket${tickets.length===1?'':'s'} ▾</button></td><td><button type="button" class="mini-btn inventory-sold-detail" data-ref="${safe(ref)}" aria-expanded="${inventorySoldOpenRef===ref}">${localSold.toLocaleString('en-US')} kg · ${soldInvoices.length} invoice${soldInvoices.length===1?'':'s'} ▾</button></td><td><b>${available.toLocaleString('en-US')} kg</b></td><td>${expiry}</td><td><button class="mini-btn inventory-open-sequence" data-ref="${ref}" type="button">Open Sequence</button></td>`;
+      const tr=document.createElement('tr');tr.classList.toggle('inventory-ticket-missing',receivingReady&&!tickets.length);
+      tr.innerHTML=`<td><b>${safe(product)}</b><br><span class="muted">${lot}</span></td><td><b>${safe(ref)}</b>${receivingReady&&!tickets.length?'<br><strong class="ticket-missing-label">Falta ticket de pesagem</strong>':''}</td><td>${safe(warehouse)}</td><td>${cargo.weightBL.toLocaleString('en-US')} kg</td><td><button type="button" class="mini-btn inventory-received-detail" data-ref="${safe(ref)}" aria-expanded="${inventoryReceivedOpenRef===ref}"><b>${received.toLocaleString('en-US')} kg</b><br>${tickets.length} ticket${tickets.length===1?'':'s'} ▾</button></td><td><button type="button" class="mini-btn inventory-sold-detail" data-ref="${safe(ref)}" aria-expanded="${inventorySoldOpenRef===ref}">${localSold.toLocaleString('en-US')} kg · ${soldInvoices.length} invoice${soldInvoices.length===1?'':'s'} ▾</button></td><td><b>${available.toLocaleString('en-US')} kg</b></td><td>${expiry}</td><td><button class="mini-btn inventory-open-sequence" data-ref="${ref}" type="button">Open Sequence</button></td>`;
       tbody.appendChild(tr);
       if(inventoryReceivedOpenRef===ref){
         const details=document.createElement('tr');details.className='inventory-received-tickets';const td=document.createElement('td');td.colSpan=9;
@@ -1070,7 +1071,8 @@ initImportStageTabs();
         details.appendChild(td);tbody.appendChild(details);
       }
     });
-    if(!inventoryRows) tbody.innerHTML='<tr><td colspan="9" class="muted" style="text-align:center;padding:24px">Inventory will appear after the first Received Weight / Ticket is registered.</td></tr>';
+    if(!inventoryRows) tbody.innerHTML='<tr><td colspan="9" class="muted" style="text-align:center;padding:24px">No orders registered.</td></tr>';
+    for(const id of ['inventoryMissingTicketAlert','dashboardMissingTicketAlert']){const alert=document.getElementById(id);if(alert){alert.hidden=!receivingReady||!missingTickets.length;alert.querySelector('.missing-ticket-summary').textContent=missingTickets.length+' ordem(ns) sem ticket de pesagem: '+missingTickets.join(' · ');}}
     document.getElementById('inventoryTotalReceived').textContent=`${grandTotal.toLocaleString('en-US')} kg`;
     document.getElementById('inventoryCompletedCount').textContent=inventoryRows;
     document.getElementById('inventoryTicketCount').textContent=totalTickets;
@@ -3268,7 +3270,7 @@ const outside=invoices.some(s=>!g.invoices.includes(s)&&linkedRecs(s).some(r=>g.
 return '<section><h2>'+g.invoices.map(s=>esc(s.invoice_number)).join(' / ')+'</h2><table><thead><tr><th>Invoice</th><th>Date</th><th>Buyer</th><th>Order</th><th class="num">Invoice total · EGP</th></tr></thead><tbody>'+g.invoices.map(s=>'<tr><td>'+esc(s.invoice_number)+'</td><td>'+esc(date(s.data?.date))+'</td><td>'+esc(s.buyer||s.data?.buyer)+'</td><td>'+esc(s.data?.reference)+'</td><td class="num">'+money(s.amount??s.data?.total)+'</td></tr>').join('')+'</tbody><tfoot><tr><th colspan="4">TOTAL INVOICES · '+g.invoices.length+'</th><th class="num">EGP '+money(invoicesTotal)+'</th></tr></tfoot></table><h3>Reconciled bank payments</h3>'+(outside?'<p>Bank payments also cover linked invoices outside the selected filter.</p>':'')+'<table><thead><tr><th>Bank date</th><th>Bank</th><th>Reference / Description</th><th>Currency</th><th>Bank credit</th><th>Bank debit</th></tr></thead><tbody>'+(bankRows||'<tr><td colspan="6">No reconciled payments.</td></tr>')+'</tbody><tfoot>'+[...bankTotals].map(([c,t])=>'<tr><th colspan="4">TOTAL BANK PAYMENTS · '+esc(c)+'</th><th class="num">'+money(t.credit)+'</th><th class="num">'+money(t.debit)+'</th></tr>').join('')+'</tfoot></table>'+(adjustments.length?'<div class="adjustments"><h3>Financial Expense / Adjustments</h3><table><thead><tr><th>Date</th><th>Bank</th><th>Description</th><th>Currency</th><th>Credit</th><th>Debit</th></tr></thead><tbody>'+adjustments.map(x=>'<tr><td>'+esc(date(x.date))+'</td><td>'+esc(x.bank)+'</td><td>'+esc(x.description)+'</td><td>'+esc(x.currency)+'</td><td class="num">'+money(x.credit)+'</td><td class="num">'+money(x.debit)+'</td></tr>').join('')+'</tbody></table></div>':'')+'</section>';
 }).join('');
 const filters=[$('srhSearch').value,$('srhFrom').value&&'From: '+date($('srhFrom').value),$('srhTo').value&&'To: '+date($('srhTo').value),$('srhStatus').selectedOptions[0].text].filter(Boolean).map(esc).join(' · ');
-w.document.open();w.document.write('<!doctype html><html><head><title>Invoices · Reconciled payments</title><style>@page{size:A4 landscape;margin:12mm}body{font:11px Arial,sans-serif;color:#17313b}h1{font-size:20px}h2{font-size:15px;background:#dceee4;padding:9px}h3{font-size:12px}table{width:100%;border-collapse:collapse;margin:8px 0 16px}th,td{padding:7px;border:1px solid #cedbd4;text-align:left;vertical-align:top;overflow-wrap:anywhere}thead{display:table-header-group}th,tfoot{background:#edf6f1}.num{text-align:right;white-space:nowrap}.adjustments{background:#fff3d5;padding:8px}.adjustments th{background:#f8e6b4}tr{break-inside:avoid}section{margin-bottom:24px}header{border-bottom:2px solid #176b56;padding-bottom:8px}</style></head><body><header><h1>AUREA EGYPT · Invoices &amp; Reconciled payments</h1><p>'+filters+'</p></header>'+body+'</body></html>');w.document.close();w.focus();w.print();
+w.document.open();w.document.write('<!doctype html><html><head><title>Invoices · Reconciled payments</title><style>@page{size:A4 landscape;margin:12mm}body{font:11px Arial,sans-serif;color:#17313b}h1{font-size:20px}h2{font-size:15px;background:#dceee4;padding:9px}h3{font-size:12px}table{width:100%;border-collapse:collapse;margin:8px 0 16px}th,td{padding:7px;border:1px solid #cedbd4;text-align:left;vertical-align:top;overflow-wrap:anywhere}thead{display:table-header-group}th,tfoot{background:#edf6f1}.num{text-align:right;white-space:nowrap}.adjustments{background:#fff3d5;padding:8px}.adjustments th{background:#f8e6b4}tr{break-inside:avoid}section{margin-bottom:24px}header{border-bottom:2px solid #176b56;padding-bottom:8px}</style><style>.missing-ticket-alert{border:1px solid #edb0b0;border-left:4px solid #b42318;background:#fff1f0;color:#9c251b;padding:12px 15px;border-radius:9px;margin-bottom:16px}.missing-ticket-alert[hidden]{display:none}.missing-ticket-alert p{margin:6px 0 10px;font-size:12px;overflow-wrap:anywhere}#inventoryTable tr.inventory-ticket-missing>td{background:#fff0ef;color:#9c251b}#inventoryTable tr.inventory-ticket-missing:hover>td{background:#ffe5e2}.ticket-missing-label{font-size:11px;color:#b42318}</style></head><body><header><h1>AUREA EGYPT · Invoices &amp; Reconciled payments</h1><p>'+filters+'</p></header>'+body+'</body></html>');w.document.close();w.focus();w.print();
 };
 $('srhRefresh').onclick=load;$('srhSearch').oninput=render;window.addEventListener('aurea-finance-refresh',()=>{if(panel.classList.contains('active'))load();});
 db.auth.onAuthStateChange(()=>{invoices=[];payments=[];links=[];history=[];banks=[];entries=[];loaded=false;$('srhRows').replaceChildren();if(panel.classList.contains('active'))setTimeout(load,0);});
