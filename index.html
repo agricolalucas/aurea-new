@@ -2096,19 +2096,20 @@ document.getElementById('expenseAddBank')?.addEventListener('click',()=>{
  }).join('');
  if([...sel.options].some(o=>o.value===current))sel.value=current;
  }
+ function expenseLinkedShipments(x){const list=Array.isArray(x.shipments)?x.shipments.map(v=>String(v||'').trim()).filter(Boolean):[];return list.length?list:String(x.shipment||'').split(',').map(v=>v.trim()).filter(Boolean);}
  function fillExpenseFilters(){
  const rows=get();
- const fill=(id,vals,label)=>{const el=document.getElementById(id);if(!el)return;const cur=el.value;el.innerHTML=`<option value="">${label}</option>`+[...new Set(vals.filter(Boolean))].sort().map(v=>`<option value="${v}">${v}</option>`).join('');if([...el.options].some(o=>o.value===cur))el.value=cur;};
+ const fill=(id,vals,label)=>{const el=document.getElementById(id);if(!el)return;const cur=el.value;el.innerHTML=`<option value="">${label}</option>`+(id==='expenseFilterShipment'?'<option value="__unlinked__">Sem link · No linked shipment</option>':'')+[...new Set(vals.filter(Boolean))].sort().map(v=>`<option value="${v}">${v}</option>`).join('');if([...el.options].some(o=>o.value===cur))el.value=cur;};
  fill('expenseFilterSupplier',rows.map(x=>x.supplier),'All suppliers');
- fill('expenseFilterShipment',rows.flatMap(x=>x.shipments||String(x.shipment||'').split(', ').filter(Boolean)),'All shipments');
+ fill('expenseFilterShipment',rows.flatMap(expenseLinkedShipments),'All shipments');
  fill('expenseFilterCategory',rows.map(x=>x.category),'All categories');
  }
  window.addEventListener('egypt-reconciliation-status-ready',()=>render());
  function filteredExpenses(){
  const rows=get(),v=id=>document.getElementById(id)?.value||'';
  return rows.map((x,i)=>({...x,_i:i,reconciled:window.egyptReconciledKeys?.has('expense:'+x.id)||false,paid:window.egyptReconciledKeys?.has('expense:'+x.id)?Math.max(Number(x.amount||0),Number(x.paid||0)):x.paid})).filter(x=>{
-  const bal=Math.max(0,(+x.amount||0)-(+x.paid||0)),st=bal>0?'Payable':'Paid',ships=x.shipments||String(x.shipment||'').split(', ').filter(Boolean);
-  return (!v('expenseFilterService').trim()||String(x.description||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLocaleLowerCase().includes(v('expenseFilterService').trim().normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLocaleLowerCase()))&&(!v('expenseFilterCurrency')||x.currency===v('expenseFilterCurrency'))&&(!v('expenseFilterSupplier')||x.supplier===v('expenseFilterSupplier'))&&(!v('expenseFilterShipment')||ships.includes(v('expenseFilterShipment')))&&(!v('expenseFilterCategory')||x.category===v('expenseFilterCategory'))&&(!v('expenseFilterStatus')||(v('expenseFilterStatus')==='payable-unreconciled'?bal>0&&!x.reconciled:st===v('expenseFilterStatus')))&&(!v('expenseFilterFrom')||x.date>=v('expenseFilterFrom'))&&(!v('expenseFilterTo')||x.date<=v('expenseFilterTo'));
+  const bal=Math.max(0,(+x.amount||0)-(+x.paid||0)),st=bal>0?'Payable':'Paid',ships=expenseLinkedShipments(x);
+  return (!v('expenseFilterService').trim()||String(x.description||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLocaleLowerCase().includes(v('expenseFilterService').trim().normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLocaleLowerCase()))&&(!v('expenseFilterCurrency')||x.currency===v('expenseFilterCurrency'))&&(!v('expenseFilterSupplier')||x.supplier===v('expenseFilterSupplier'))&&(!v('expenseFilterShipment')||(v('expenseFilterShipment')==='__unlinked__'?ships.length===0:ships.includes(v('expenseFilterShipment'))))&&(!v('expenseFilterCategory')||x.category===v('expenseFilterCategory'))&&(!v('expenseFilterStatus')||(v('expenseFilterStatus')==='payable-unreconciled'?bal>0&&!x.reconciled:st===v('expenseFilterStatus')))&&(!v('expenseFilterFrom')||x.date>=v('expenseFilterFrom'))&&(!v('expenseFilterTo')||x.date<=v('expenseFilterTo'));
  });
  }
  function sumCurrencies(rows,type){
