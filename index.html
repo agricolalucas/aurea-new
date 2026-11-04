@@ -3338,7 +3338,7 @@ new MutationObserver(window.egyptPaintPaidShipments).observe(body,{childList:tru
 const host=document.getElementById('despesas'),tabs=host?.querySelector('.finance-tabs');if(!tabs)return;
 const tab=document.createElement('button');tab.type='button';tab.className='secondary';tab.textContent='DRE · Por ordem';tabs.append(tab);
 const panel=document.createElement('div');panel.hidden=true;tabs.after(panel);
-panel.innerHTML='<div class="toolbar"><label>Order <select id="dreOrder"><option value="">All POs</option></select></label><label>Currency <select id="dreCurrency"><option>EGP</option><option>USD</option><option>EUR</option></select></label><button type="button" class="secondary" id="dreRefresh">Refresh</button></div><p id="dreMessage" role="status"></p><div id="dreReport"></div>';
+panel.innerHTML='<div class="toolbar"><label>Order <select id="dreOrder"><option value="">All POs</option></select></label><label>Currency <select id="dreCurrency"><option>EGP</option><option>USD</option><option>EUR</option></select></label><button type="button" class="secondary" id="dreRefresh">Refresh</button><button type="button" class="secondary" id="drePdf">PDF</button></div><p id="dreMessage" role="status"></p><div id="dreReport"></div>';
 const $=id=>document.getElementById(id),esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])),num=v=>Number(v||0),money=v=>num(v).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
 let sales=[],expenses=[],payments=[],receipts=[],reconciliations=[],refs=[],busy=false,loaded=false;
 const norm=v=>String(v||'').trim().replace(/\s+/g,' ').toUpperCase(),base=v=>norm(v).replace(/\s*\([^()]*\)\s*$/,'').trim();
@@ -3378,6 +3378,25 @@ $('dreReport').innerHTML=overview()+'<h2>DRE · Shipment '+esc(ref)+'</h2><p>'+s
 async function load(){if(busy)return;busy=true;$('dreMessage').textContent='Loading DRE…';try{const a=await read('shipments'),b=await read('egypt_sales_invoices'),c=await read('egypt_expenses'),d=await read('egypt_order_payments'),e=await read('egypt_sales_payments'),f=await read('egypt_bank_reconciliations');refs=[...new Set(a.map(r=>r.reference))];sales=b;expenses=c;payments=d;receipts=e;reconciliations=f;const selected=$('dreOrder').value;$('dreOrder').innerHTML='<option value="">All POs</option>'+refs.map(r=>'<option value="'+esc(r)+'">'+esc(r)+'</option>').join('');$('dreOrder').value=selected;loaded=true;render();$('dreMessage').textContent='';}catch(e){loaded=false;$('dreReport').innerHTML='';$('dreMessage').textContent='Could not load DRE: '+e.message;}finally{busy=false;}}
 tab.onclick=()=>{tabs.querySelectorAll('button').forEach(b=>b.classList.toggle('active',b===tab));for(const id of ['expensePanel','reconciliationPanel','legacyReconciliationPanel'])$(id).hidden=true;panel.hidden=false;load();};
 tabs.querySelectorAll('[data-ft]').forEach(b=>b.addEventListener('click',()=>{panel.hidden=true;tab.classList.remove('active');}));
+$('drePdf').onclick=()=>{
+ if(busy||!loaded||!$('dreReport').querySelector('table')){$('dreMessage').textContent='Load the DRE before generating the PDF.';return;}
+ const w=window.open('','_blank');if(!w){$('dreMessage').textContent='Allow pop-ups to generate the PDF.';return;}w.opener=null;
+ const report=$('dreReport').cloneNode(true),overviewTable=report.querySelector('.dre-po-table');
+ if(overviewTable){
+  const count=overviewTable.rows[0].cells.length,parts=document.createElement('div');
+  for(let start=1;start<count;start+=6){
+   const section=document.createElement('section');section.className='overview-part';
+   const label=document.createElement('h3');label.textContent='PO overview · Part '+(Math.floor((start-1)/6)+1);section.append(label);
+   const copy=overviewTable.cloneNode(true);
+   for(const row of copy.rows)for(let i=row.cells.length-1;i>=1;i--)if(i<start||i>=start+6)row.deleteCell(i);
+   section.append(copy);parts.append(section);
+  }
+  overviewTable.closest('.table-card').replaceWith(parts);
+ }
+ const order=$('dreOrder').value||'All POs',currency=$('dreCurrency').value;
+ w.document.write('<!doctype html><html><head><meta charset="utf-8"><title>DRE - '+esc(order)+' - '+esc(currency)+'</title><style>@page{size:A4 landscape;margin:12mm}*{box-sizing:border-box}body{font:10px Arial,sans-serif;color:#102b36;margin:0}header{border-bottom:2px solid #082937;padding-bottom:8px;margin-bottom:12px}h1{font-size:19px;margin:0 0 6px}h2{font-size:15px}h3{font-size:12px}table{width:100%;border-collapse:collapse;table-layout:fixed;margin-bottom:12px}th,td{border:1px solid #cbd5da;padding:5px;overflow-wrap:anywhere}th{background:#edf2f3;text-align:left}td:not(:first-child),tfoot th:not(:first-child){text-align:right}thead{display:table-header-group}tfoot{display:table-row-group;font-weight:bold}tr{break-inside:avoid}p{line-height:1.5}.overview-part{break-after:page}.overview-part:last-child{break-after:auto}.actions{margin:12px 0}button{padding:8px 16px;cursor:pointer}@media print{.actions{display:none}}</style></head><body><div class="actions"><button onclick="window.print()">Print / Save as PDF</button></div><header><h1>AUREA COMMERCIAL EGYPT</h1><b>DRE · Profit and loss by order</b><p>Order: '+esc(order)+' · Currency: '+esc(currency)+' · Generated: '+esc(new Date().toLocaleString('en-GB'))+'</p></header>'+report.innerHTML+'</body></html>');w.document.close();w.focus();
+ w.setTimeout(()=>w.print(),250);
+};
 $('dreCurrency').onchange=()=>{if(loaded)render();};$('dreOrder').onchange=()=>{if(loaded)render();};$('dreRefresh').onclick=load;
 window.addEventListener('aurea-finance-refresh',()=>{if(!panel.hidden)load();});
 window.aureaDb.auth.onAuthStateChange(()=>{sales=[];expenses=[];payments=[];receipts=[];reconciliations=[];loaded=false;$('dreReport').innerHTML='';if(!panel.hidden)setTimeout(load,0);});
