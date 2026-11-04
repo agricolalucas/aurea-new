@@ -1020,6 +1020,43 @@ initImportStageTabs();
    const receivingFileToDataURL=file=>new Promise((resolve,reject)=>{if(!file||!file.name)return resolve('');const r=new FileReader();r.onload=()=>resolve(String(r.result||''));r.onerror=()=>reject(new Error('Could not read ticket attachment'));r.readAsDataURL(file)});
    function receivingDataUrlToBlobUrl(dataUrl){try{const p=String(dataUrl||'').split(',');if(p.length<2)return '';const mime=(p[0].match(/data:([^;]+)/)||[])[1]||'application/octet-stream',bin=atob(p.slice(1).join(',')),bytes=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)bytes[i]=bin.charCodeAt(i);return URL.createObjectURL(new Blob([bytes],{type:mime}))}catch(_){return ''}}
 
+  let ticketPdfLibrary;
+  function loadTicketPdfLibrary(){
+    if(window.PDFLib)return Promise.resolve(window.PDFLib);
+    if(!ticketPdfLibrary)ticketPdfLibrary=new Promise((resolve,reject)=>{const script=document.createElement('script');script.src='https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/dist/pdf-lib.min.js';script.onload=()=>resolve(window.PDFLib);script.onerror=()=>{ticketPdfLibrary=null;script.remove();reject(Error('Could not load PDF generator. Check your connection and retry.'));};document.head.append(script);});
+    return ticketPdfLibrary;
+  }
+  async function exportReceivingTicketsPdf(ref,button){
+    if(!receivingReady){notify('Wait for receiving tickets to load.');return;}
+    const tickets=getReceivingTickets(ref).map(t=>({...t,weight:t.weightFull!==undefined&&t.weightFull!==null&&t.weightFull!==''&&t.weightEmpty!==undefined&&t.weightEmpty!==null&&t.weightEmpty!==''?Number(t.weightFull)-Number(t.weightEmpty):Number(t.weight||0)}));if(!tickets.length){notify('No receiving tickets for this order.');return;}
+    button.disabled=true;const label=button.textContent;button.textContent='Generating PDF…';
+    try{
+      const {PDFDocument,StandardFonts,rgb}=await loadTicketPdfLibrary();
+      const pdf=await PDFDocument.create(),font=await pdf.embedFont(StandardFonts.Helvetica),bold=await pdf.embedFont(StandardFonts.HelveticaBold);
+      const cargo=getCargoShipmentData(ref),row=[...document.querySelectorAll('#cargoTable tbody tr[data-reference]')].find(r=>r.dataset.reference===ref),bl=row?.cells[3]?.textContent.trim()||'Not registered';
+      const {data:docs,error}=await window.aureaDb.from('egypt_supplier_documents').select('fields').eq('shipment_ref',ref);if(error)throw error;
+      const invoice=[...new Set((docs||[]).map(d=>d.fields?.['invoice-number']).filter(Boolean))].join(', ')||'Not registered';
+      const clean=v=>String(v??'').normalize('NFKD').replace(/[^\x20-\x7e\n]/g,'?');
+      let page,y;
+      function newPage(){page=pdf.addPage([595.28,841.89]);y=800;page.drawText('AUREA COMMERCIAL EGYPT',{x:36,y,size:16,font:bold,color:rgb(.03,.16,.21)});y-=24;page.drawText('Receiving tickets / Weight report',{x:36,y,size:13,font:bold});y-=26;}
+      function line(text,strong=false){const f=strong?bold:font;for(const paragraph of clean(text).split('\n')){let out='';for(const word of paragraph.split(' ')){if(f.widthOfTextAtSize(out+' '+word,10)>515&&out){if(y<45)newPage();page.drawText(out,{x:36,y,size:10,font:f});y-=15;out='';}if(f.widthOfTextAtSize(word,10)>510){for(const c of word){if(f.widthOfTextAtSize(out+c,10)>510){if(y<45)newPage();page.drawText(out,{x:36,y,size:10,font:f});y-=15;out='';}out+=c;}}else out+=(out?' ':'')+word;}if(y<45)newPage();page.drawText(out,{x:36,y,size:10,font:f});y-=15;}}
+      const kg=v=>Number(v||0).toLocaleString('en-US',{maximumFractionDigits:3})+' kg';
+      const total=tickets.reduce((n,t)=>n+Number(t.weight||0),0);
+      newPage();line('Order: '+ref,true);line('Invoice (supplier): '+invoice);line('BL: '+bl);line('Product: '+cargo.product);line('BL weight: '+kg(cargo.weightBL),true);line('Calculated ticket weight: '+kg(total),true);line('Difference (tickets - BL): '+kg(total-cargo.weightBL));line('Tickets: '+tickets.length+' | Attachments: '+tickets.filter(t=>t.fileData).length);line('Ticket net weight = full weight - empty weight; legacy tickets use saved net weight.');y-=12;
+      for(const [i,t] of tickets.entries()){if(y<170)newPage();line('Ticket '+(i+1)+': '+(t.ticketNo||'Not registered')+' | Date: '+(t.date||'-'),true);line('Container: '+(t.container||'Not registered'));line('Full: '+kg(t.weightFull)+' | Empty: '+kg(t.weightEmpty)+' | Net: '+kg(t.weight));line('Attachment: '+(t.fileName||'No attachment'));if(!t.fileData)line('ATTACHMENT MISSING - reattach this ticket to include its document.');y-=10;}
+      for(const [i,t] of tickets.entries()){
+        if(!t.fileData)continue;
+        try{
+          const bytes=new Uint8Array(await (await fetch(t.fileData)).arrayBuffer()),mime=t.fileData.slice(0,t.fileData.indexOf(','));
+          if(/application\/pdf/i.test(mime)){const src=await PDFDocument.load(bytes);const pages=await pdf.copyPages(src,src.getPageIndices());for(const p of pages)pdf.addPage(p);}
+          else if(/image\/(png|jpeg|jpg)/i.test(mime)){const image=/image\/png/i.test(mime)?await pdf.embedPng(bytes):await pdf.embedJpg(bytes);newPage();line('Ticket '+(i+1)+' | Container: '+(t.container||'-'),true);line('Order: '+ref+' | Invoice: '+invoice);line('BL: '+bl);line(t.fileName||'Ticket attachment');const scale=Math.min(523/image.width,(y-45)/image.height);page.drawImage(image,{x:36+(523-image.width*scale)/2,y:45,width:image.width*scale,height:image.height*scale});}
+          else throw Error('Unsupported attachment format');
+        }catch(e){throw Error('Ticket '+(t.ticketNo||i+1)+' ('+(t.fileName||'attachment')+'): '+e.message+'. No incomplete PDF was downloaded.');}
+      }
+      pdf.setTitle('Receiving tickets - '+ref);const url=URL.createObjectURL(new Blob([await pdf.save()],{type:'application/pdf'})),a=document.createElement('a');a.href=url;a.download='Tickets-'+ref.replace(/[^a-z0-9_-]/gi,'_')+'.pdf';a.click();setTimeout(()=>URL.revokeObjectURL(url),60000);notify('Ticket PDF generated with all available attachments.');
+    }catch(e){notify('Could not generate ticket PDF: '+e.message);}finally{button.disabled=false;button.textContent=label;}
+  }
+
   function getSelectedShipmentInfo(){
     if(!selectedShipment) return null;
     const ref=shipmentRefFromItem(selectedShipment);
@@ -1066,7 +1103,7 @@ initImportStageTabs();
       const lot=latest.lot||'—',warehouse=latest.warehouse||'—',expiry=latest.expiry||'—';
       grandTotal+=received; totalTickets+=tickets.length;
       const tr=document.createElement('tr');tr.classList.toggle('inventory-ticket-missing',receivingReady&&!tickets.length);
-      tr.innerHTML=`<td><b>${safe(product)}</b><br><span class="muted">${lot}</span></td><td><b>${safe(ref)}</b>${receivingReady&&!tickets.length?'<br><strong class="ticket-missing-label">Missing weighing ticket</strong>':''}</td><td>${safe(warehouse)}</td><td>${cargo.weightBL.toLocaleString('en-US')} kg</td><td><button type="button" class="mini-btn inventory-received-detail" data-ref="${safe(ref)}" aria-expanded="${inventoryReceivedOpenRef===ref}"><b>${received.toLocaleString('en-US')} kg</b><br>${tickets.length} ticket${tickets.length===1?'':'s'} ▾</button></td><td><button type="button" class="mini-btn inventory-sold-detail" data-ref="${safe(ref)}" aria-expanded="${inventorySoldOpenRef===ref}">${localSold.toLocaleString('en-US')} kg · ${soldInvoices.length} invoice${soldInvoices.length===1?'':'s'} ▾</button></td><td><b>${available.toLocaleString('en-US')} kg</b></td><td>${expiry}</td><td><button class="mini-btn inventory-add-ticket" data-ref="${safe(ref)}" type="button">+ Add weighing ticket</button> <button class="mini-btn inventory-open-sequence" data-ref="${safe(ref)}" type="button">Open Sequence</button></td>`;
+      tr.innerHTML=`<td><b>${safe(product)}</b><br><span class="muted">${lot}</span></td><td><b>${safe(ref)}</b>${receivingReady&&!tickets.length?'<br><strong class="ticket-missing-label">Missing weighing ticket</strong>':''}</td><td>${safe(warehouse)}</td><td>${cargo.weightBL.toLocaleString('en-US')} kg</td><td><button type="button" class="mini-btn inventory-received-detail" data-ref="${safe(ref)}" aria-expanded="${inventoryReceivedOpenRef===ref}"><b>${received.toLocaleString('en-US')} kg</b><br>${tickets.length} ticket${tickets.length===1?'':'s'} ▾</button></td><td><button type="button" class="mini-btn inventory-sold-detail" data-ref="${safe(ref)}" aria-expanded="${inventorySoldOpenRef===ref}">${localSold.toLocaleString('en-US')} kg · ${soldInvoices.length} invoice${soldInvoices.length===1?'':'s'} ▾</button></td><td><b>${available.toLocaleString('en-US')} kg</b></td><td>${expiry}</td><td><button class="mini-btn inventory-add-ticket" data-ref="${safe(ref)}" type="button">+ Add weighing ticket</button> <button class="mini-btn inventory-open-sequence" data-ref="${safe(ref)}" type="button">Open Sequence</button> <button class="mini-btn inventory-tickets-pdf" data-ref="${safe(ref)}" type="button">Tickets PDF + attachments</button></td>`;
       tbody.appendChild(tr);
       if(inventoryReceivedOpenRef===ref){
         const details=document.createElement('tr');details.className='inventory-received-tickets';const td=document.createElement('td');td.colSpan=9;
@@ -1139,6 +1176,7 @@ initImportStageTabs();
      if(del){const ticket=tickets[Number(del.dataset.index)];if(!ticket?.id||!confirm('Delete this receiving ticket for all users?'))return;const {error}=await window.aureaDb.from('egypt_receiving_tickets').delete().eq('id',ticket.id);if(error){notify('Could not delete ticket: '+error.message);return}await loadReceivingTickets();notify('Receiving ticket deleted for all users');}
   };
   document.querySelector('#inventoryTable tbody').onclick=e=>{
+    const pdfButton=e.target.closest('.inventory-tickets-pdf');if(pdfButton){exportReceivingTicketsPdf(pdfButton.dataset.ref,pdfButton);return;}
     const add=e.target.closest('.inventory-add-ticket');if(add){if(!receivingReady){notify('Wait for receiving tickets to load.');return;}const item=[...document.querySelectorAll('#importFileList .file-item')].find(x=>shipmentRefFromItem(x)===add.dataset.ref);if(!item){notify('Open Import Document Sequence and refresh the order list.');return;}selectShipment(item);const f=document.getElementById('receivingTicketForm');f.reset();f.elements.editIndex.value='';document.getElementById('receivingFileHint').textContent='Attach PDF, JPG or PNG.';document.getElementById('addReceivingTicketBtn').click();return;}
 
     const received=e.target.closest('.inventory-received-detail');if(received){inventoryReceivedOpenRef=inventoryReceivedOpenRef===received.dataset.ref?'':received.dataset.ref;renderInventory();return;}
