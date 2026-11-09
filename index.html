@@ -3129,7 +3129,15 @@ function bankForLabel(label){return banks.find(b=>aliases(b).includes(String(lab
 const activeBank=()=>$('rcBank').value, currency=()=>$('rcCurrency').value;
 const bankMatched=id=>links.some(l=>l.statement_id===id);
 const systemMatched=key=>sourceRows.some(r=>r.key===key&&r.adjustment_of)||links.some(l=>l.system_key===key)||key.startsWith('expense:')&&legacyMatches.some(m=>'expense:'+m.expense_id===key);
-function entryReconciliationButtons(side,row){const ids=new Set(links.filter(l=>side==='bank'?l.statement_id===row.id:l.system_key===row.key).map(l=>l.reconciliation_id));if(side==='system'&&row.adjustment_of)ids.add(row.adjustment_of);const records=history.filter(h=>ids.has(h.id)||(side==='bank'?(h.data?.bank||[]).some(b=>b.id===row.id):(h.data?.system||[]).some(x=>x.key===row.key)));return records.map((h,i)=>'<br><button type="button" class="mini-btn" data-view-links="'+esc(h.id)+'">View reconciliation'+(records.length>1?' '+(i+1):'')+'</button>').join('');}
+function entryReconciliationButtons(side,row){
+  const ids=new Set(links.filter(l=>side==='bank'?l.statement_id===row.id:l.system_key===row.key).map(l=>l.reconciliation_id));
+  if(side==='system'&&row.adjustment_of)ids.add(row.adjustment_of);
+  const records=history.filter(h=>ids.has(h.id)||(side==='bank'?(h.data?.bank||[]).some(b=>b.id===row.id):(h.data?.system||[]).some(x=>x.key===row.key)));
+  return records.map((h,index)=>{
+    const id=esc(h.id),suffix=records.length>1?' '+(index+1):'';
+    return `<br><button type="button" class="mini-btn" data-view-links="${id}">View reconciliation${suffix}</button> <button type="button" class="mini-btn" data-unreconcile="${id}">Desconciliar${suffix}</button>`;
+  }).join('');
+}
 function bankScope(){return bankRows.filter(r=>r.bank_id===activeBank()&&r.currency===currency())}
 function systemScope(){return sourceRows.filter(r=>!r.adjustment_of||r.bank_id===activeBank())}
 function filterFor(side){const form=root.querySelector(`[data-filter="${side}"]`);return Object.fromEntries([...form.querySelectorAll('[data-filter-key]')].map(e=>[e.dataset.filterKey,e.value]));}
