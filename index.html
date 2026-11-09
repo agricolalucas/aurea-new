@@ -3157,7 +3157,24 @@ function entryReconciliationButtons(side,row){
 function bankScope(){return bankRows.filter(r=>r.bank_id===activeBank()&&r.currency===currency())}
 function systemScope(){return sourceRows.filter(r=>!r.adjustment_of||r.bank_id===activeBank())}
 function filterFor(side){const form=root.querySelector(`[data-filter="${side}"]`);return Object.fromEntries([...form.querySelectorAll('[data-filter-key]')].map(e=>[e.dataset.filterKey,e.value]));}
-function visibleRows(side){const f=filterFor(side),view=$('rcView').value,q=(f.search||'').toLowerCase(),scope=side==='bank'?bankScope():systemScope();return scope.filter(r=>{if(side==='system'&&$('rcSource').value&&r.source!==$('rcSource').value)return false;const matched=side==='bank'?bankMatched(r.id):systemMatched(r.key),direction=Number(r.credit)>0?'credit':'debit';return (view==='all'||(view==='matched'?matched:!matched))&&(!f.from||r.date>=f.from)&&(!f.to||r.date<=f.to)&&(!f.type||direction===f.type)&&(!q||[r.description,r.reference,r.amount,r.credit,r.debit,r.balance,r.source,r.gstin,r.buyer].join(' ').toLowerCase().includes(q))})}
+function visibleRows(side){
+  const f=filterFor(side),view=$('rcView').value,q=(f.search||'').trim().toLowerCase(),scope=side==='bank'?bankScope():systemScope();
+  return scope.filter(r=>{
+    if(side==='system'&&$('rcSource').value&&r.source!==$('rcSource').value)return false;
+    const matched=side==='bank'?bankMatched(r.id):systemMatched(r.key),direction=Number(r.credit)>0?'credit':'debit';
+    if(view!=='all'&&(view==='matched'?!matched:matched))return false;
+    if((f.from&&r.date<f.from)||(f.to&&r.date>f.to)||(f.type&&direction!==f.type))return false;
+    if(!q)return true;
+    const amounts=[r.amount,r.credit,r.debit,r.balance];
+    const text=[r.description,r.reference,...amounts,r.source,r.gstin,r.buyer].join(' ').toLowerCase();
+    if(text.includes(q))return true;
+    return amounts.some(value=>{
+      if(value==null||value===''||!Number.isFinite(Number(value)))return false;
+      const formatted=cash(value);
+      return formatted.includes(q)||formatted.replace(/[,.]/g,separator=>separator===','?'.':',').includes(q);
+    });
+  });
+}
 function selectedRows(){return {bank:bankScope().filter(r=>selectedBank.has(r.id)&&!bankMatched(r.id)),system:systemScope().filter(r=>selectedSystem.has(r.key)&&!systemMatched(r.key)&&r.currency===currency()&&(!r.bank_id||r.bank_id===activeBank()))}}
 function invalidateAdjustment(){adjustmentContext=null;$('rcAdjustment').hidden=true;$('rcAdjustment').classList.remove('open');}
 function renderSummary(){const r=selectedRows(),b=total(r.bank),ss=total(r.system),diff=round(net(b)-net(ss)),c=currency(),group=new Map();r.system.forEach(x=>{const k=`${Number(x.credit)>0?'Credit':'Debit'} · ${x.currency}`;group.set(k,round((group.get(k)||0)+Number(x.amount||0)))});const groupText=[...group].map(([k,v])=>`${k}: ${cash(v)}`).join(' / '),ready=activeBank()&&b.count&&ss.count;$('rcSummary').innerHTML=`<div><small>Bank · ${b.count} selected</small><b>Credit ${esc(c)} ${cash(b.credit)}<br>Debit ${esc(c)} ${cash(b.debit)}</b></div><div><small>System · ${ss.count} invoices selected</small><b>${esc(groupText||'Select registered invoices above')}</b><small>${ss.count} invoices selected · Credit ${esc(c)} ${cash(ss.credit)} / Debit ${esc(c)} ${cash(ss.debit)}</small></div><div class="difference ${ready?'ok':'warn'}"><small>Diferença líquida antes do ajuste</small><b id="rcDifference">${esc(c)} ${cash(diff)}</b><small>${diff!==0?'Conciliar com lançamento avulso':'Valores conciliados sem ajuste'}</small></div>`;$('bankSelectedTotal').textContent=`Selecionados: ${b.count} · Crédito ${c} ${cash(b.credit)} · Débito ${c} ${cash(b.debit)} · Soma ${c} ${cash(b.credit+b.debit)}`;$('systemSelectedTotal').textContent=`Selecionados: ${ss.count} · ${groupText||cash(0)} · Soma ${c} ${cash(ss.credit+ss.debit)}`;$('cashSystemRegisterState').textContent=`System · ${sourceRows.length} entries · ${sourceRows.filter(r=>r.source==='Register Order Payment').length} saved order payments · ${ss.count} selected${groupText?' · '+groupText:''}`;$('cashKpiStatus').textContent=activeBank()?'Selected bank · '+c:'Select a bank';$('rcReconcile').disabled=busy||!backendReady||!ready;return diff;}
