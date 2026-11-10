@@ -219,7 +219,7 @@ window.egyptInvoiceFreightForm=f=>window.egyptInvoiceFreightEGP(Object.fromEntri
 #expenseTable{min-width:1450px}#expenseTable th{padding:6px 7px;font-size:10px}#expenseTable td{padding:4px 7px;font-size:12px;line-height:1.2;vertical-align:middle}#expenseTable .expense-cell-compact{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;max-height:30px}#expenseTable td:nth-child(4){min-width:110px;max-width:150px}#expenseTable td:nth-child(5){min-width:220px;max-width:300px}#expenseTable td:nth-child(9){min-width:145px;max-width:210px}#expenseTable td:nth-child(2),#expenseTable td:nth-child(11),#expenseTable td:nth-child(12),#expenseTable td:nth-child(13){white-space:nowrap}#expenseTable .expense-selection-cell{width:28px;text-align:center}#expenseTable .expense-selection-cell input{width:14px;height:14px;margin:0;vertical-align:middle}#expenseTable .mini-btn{padding:3px 6px;font-size:11px;border-radius:5px}#expenseTable .status{padding:3px 6px;font-size:10px}#expenseTable td:last-child{white-space:nowrap}
 </style><style>.missing-ticket-alert{border:1px solid #edb0b0;border-left:4px solid #b42318;background:#fff1f0;color:#9c251b;padding:12px 15px;border-radius:9px;margin-bottom:16px}.missing-ticket-alert[hidden]{display:none}.missing-ticket-alert p{margin:6px 0 10px;font-size:12px;overflow-wrap:anywhere}#inventoryTable tr.inventory-ticket-missing .inventory-received-detail{background:#fff0ef;color:#b42318;border-color:#edb0b0}#inventoryTable tr.inventory-ticket-missing .inventory-received-detail:hover{background:#ffe5e2}.ticket-missing-label{font-size:11px;color:var(--muted);font-weight:500}</style><style>
 .data-table.dre-po-table{width:auto;min-width:0;table-layout:auto}
-.dre-po-table th,.dre-po-table td{padding:4px 5px;font-size:11px;line-height:1.2}
+.dre-po-table th,.dre-po-table td{padding:3px 4px;font-size:11px;line-height:1.2}
 .dre-po-table thead th{vertical-align:bottom;letter-spacing:0}
 .dre-po-table .dre-category-label{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;max-width:76px;overflow:hidden;overflow-wrap:anywhere}
 .dre-po-table td:not(:first-child),.dre-po-table tfoot th:not(:first-child){text-align:right;white-space:nowrap}
@@ -3642,21 +3642,41 @@ tabs.querySelectorAll('[data-ft]').forEach(b=>b.addEventListener('click',()=>{pa
 $('drePdf').onclick=()=>{
  if(busy||!loaded||!$('dreReport').querySelector('table')){$('dreMessage').textContent='Load the DRE before generating the PDF.';return;}
  const w=window.open('','_blank');if(!w){$('dreMessage').textContent='Allow pop-ups to generate the PDF.';return;}w.opener=null;
- const report=$('dreReport').cloneNode(true),overviewTable=report.querySelector('.dre-po-table');
- if(overviewTable){
-  const count=overviewTable.rows[0].cells.length,parts=document.createElement('div');
-  for(let start=1;start<count;start+=6){
-   const section=document.createElement('section');section.className='overview-part';
-   const label=document.createElement('h3');label.textContent='PO overview · Part '+(Math.floor((start-1)/6)+1);section.append(label);
-   const copy=overviewTable.cloneNode(true);
-   for(const row of copy.rows)for(let i=row.cells.length-1;i>=1;i--)if(i<start||i>=start+6)row.deleteCell(i);
-   section.append(copy);parts.append(section);
-  }
-  overviewTable.closest('.table-card').replaceWith(parts);
- }
  const order=$('dreOrder').value||'All POs',currency=$('dreCurrency').value;
- w.document.write('<!doctype html><html><head><meta charset="utf-8"><title>DRE - '+esc(order)+' - '+esc(currency)+'</title><style>@page{size:A4 landscape;margin:12mm}*{box-sizing:border-box}body{font:10px Arial,sans-serif;color:#102b36;margin:0}header{border-bottom:2px solid #082937;padding-bottom:8px;margin-bottom:12px}h1{font-size:19px;margin:0 0 6px}h2{font-size:15px}h3{font-size:12px}table{width:100%;border-collapse:collapse;table-layout:fixed;margin-bottom:12px}th,td{border:1px solid #cbd5da;padding:5px;overflow-wrap:anywhere}th{background:#edf2f3;text-align:left}td:not(:first-child),tfoot th:not(:first-child){text-align:right}thead{display:table-header-group}tfoot{display:table-row-group;font-weight:bold}tr{break-inside:avoid}p{line-height:1.5}.overview-part{break-after:page}.overview-part:last-child{break-after:auto}.actions{margin:12px 0}button{padding:8px 16px;cursor:pointer}@media print{.actions{display:none}}</style></head><body><div class="actions"><button onclick="window.print()">Print / Save as PDF</button></div><header><h1>AUREA COMMERCIAL EGYPT</h1><b>DRE · Profit and loss by order</b><p>Order: '+esc(order)+' · Currency: '+esc(currency)+' · Generated: '+esc(new Date().toLocaleString('en-GB'))+'</p></header>'+report.innerHTML+'</body></html>');w.document.close();w.focus();
- w.setTimeout(()=>w.print(),250);
+ const marginMm=6,pxPerMm=96/25.4,landscapeWidth=297,landscapeHeight=210;
+ w.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>DRE - ${esc(order)} - ${esc(currency)}</title>
+ <style id="drePageSize"></style><style>
+ *{box-sizing:border-box}body{font:10px/1.2 Arial,sans-serif;color:#102b36;margin:0}main{display:flow-root}
+ header{border-bottom:1px solid #082937;padding-bottom:4px;margin-bottom:5px}
+ h1{font-size:15px;margin:0 0 2px}h2{font-size:13px;margin:5px 0 3px}h3{font-size:11px;margin:5px 0 3px}
+ p{margin:3px 0;overflow-wrap:anywhere}.muted{color:#425d69}
+ table{width:100%;border-collapse:collapse;table-layout:fixed;margin:0 0 4px}
+ th,td{border:1px solid #cbd5da;padding:2px 3px;overflow-wrap:anywhere;vertical-align:middle}
+ th{background:#edf2f3;text-align:left}tr{break-inside:avoid}
+ .dre-po-table{width:max-content;table-layout:auto;font-size:9px}
+ .dre-po-table thead th{vertical-align:bottom;max-width:82px}
+ .dre-po-table tbody td:first-child{max-width:150px}
+ .dre-po-table th:not(:first-child),.dre-po-table td:not(:first-child){text-align:right}
+ .dre-po-table td:not(:first-child),.dre-po-table tfoot th{white-space:nowrap;font-variant-numeric:tabular-nums}
+ .dre-po-table th:last-child,.dre-po-table td:last-child{background:#e3f2e9;border-left:2px solid #76a995;font-weight:800}
+ .dre-po-table tfoot th{background:#dbe8eb;border-top:2px solid #819da6}
+ .dre-po-table tfoot th:last-child{background:#cde9da}
+ .actions{margin:8px 0}button{padding:6px 12px;cursor:pointer}
+ @media print{.actions{display:none}th,.dre-po-table td:last-child{print-color-adjust:exact}}
+ </style></head><body><div class="actions"><button onclick="window.print()">Print / Save as PDF</button></div>
+ <main><header><h1>AUREA COMMERCIAL EGYPT</h1><b>DRE · Profit and loss by order</b>
+ <p>Order: ${esc(order)} · Currency: ${esc(currency)} · Generated: ${esc(new Date().toLocaleString('en-GB'))}</p></header>
+ ${$('dreReport').innerHTML}</main></body></html>`);
+ w.document.close();
+ const sheet=w.document.querySelector('main');
+ // Keep A4 for short reports and extend the PDF sheet when the full table needs more room.
+ sheet.style.width=(landscapeWidth-2*marginMm-2)+'mm';
+ const widthMm=sheet.scrollWidth>Math.ceil(sheet.getBoundingClientRect().width)
+  ?Math.ceil(sheet.scrollWidth/pxPerMm)+2*marginMm+2:landscapeWidth;
+ sheet.style.width=(widthMm-2*marginMm-2)+'mm';
+ const heightMm=Math.max(landscapeHeight,Math.ceil(sheet.getBoundingClientRect().height/pxPerMm)+2*marginMm+2);
+ w.document.getElementById('drePageSize').textContent=`@page{size:${widthMm}mm ${heightMm}mm;margin:${marginMm}mm}`;
+ w.focus();w.setTimeout(()=>w.print(),250);
 };
 $('dreCurrency').onchange=()=>{if(loaded)render();};$('dreOrder').onchange=()=>{if(loaded)render();};$('dreRefresh').onclick=load;
 window.addEventListener('aurea-finance-refresh',()=>{if(!panel.hidden)load();});
