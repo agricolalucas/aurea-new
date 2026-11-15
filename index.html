@@ -3686,15 +3686,17 @@ const currency=$('dreCurrency').value,filter=$('dreOrder').value,list=filter?ref
 const linkedExpenses=expenses.map(expense=>({
  expense,orders:expenseRefs(expense),amount:expenseCost(expense,currency),
  missingRate:currency==='EGP'&&expense.currency==='USD'&&!expenseEgpRate(expense)&&num(expense.amount)>0
-})).filter(({orders,amount,missingRate})=>(amount!==null||missingRate)&&orders.some(order=>list.some(ref=>same(order,ref))));
-const categories=[...new Set(linkedExpenses.filter(entry=>!entry.missingRate)
+})).filter(({amount,missingRate})=>amount!==null||missingRate);
+const administrativeExpenses=filter?[]:linkedExpenses.filter(({orders})=>orders.length===0);
+const orderExpenses=linkedExpenses.filter(({orders})=>orders.some(order=>list.some(ref=>same(order,ref))));
+const categories=[...new Set([...administrativeExpenses,...orderExpenses].filter(entry=>!entry.missingRate)
  .flatMap(({expense})=>expenseCategoryAmounts(expense).map(([category])=>category)))].sort();
 const totals={sale:0,supplier:0,cost:0,missing:false,categories:new Map()};
-const rows=list.map(ref=>{let sale=0,supplier=0,missing=false,cost=0;const cats=new Map();
-for(const s of sales){const d=s.data||{};if((d.currency||'EGP')!==currency)continue;const root=s.shipment_ref||d.reference||d.shipment||'',items=Array.isArray(d.items)?d.items:[],all=items.reduce((n,i)=>n+num(i.total),0);if(items.length){const linked=items.filter(i=>same(i.reference||i.shipment||root,ref));if(linked.length)sale+=num(s.amount)*(all>0?linked.reduce((n,i)=>n+num(i.total),0)/all:1);}else if(same(root,ref))sale+=num(s.amount);}
+const rows=(filter?list:[null,...list]).map(ref=>{let sale=0,supplier=0,missing=false,cost=0;const cats=new Map();
+if(ref!==null)for(const s of sales){const d=s.data||{};if((d.currency||'EGP')!==currency)continue;const root=s.shipment_ref||d.reference||d.shipment||'',items=Array.isArray(d.items)?d.items:[],all=items.reduce((n,i)=>n+num(i.total),0);if(items.length){const linked=items.filter(i=>same(i.reference||i.shipment||root,ref));if(linked.length)sale+=num(s.amount)*(all>0?linked.reduce((n,i)=>n+num(i.total),0)/all:1);}else if(same(root,ref))sale+=num(s.amount);}
 for(const p of payments.filter(p=>same(p.shipment_ref,ref))){if(currency==='USD')supplier+=num(p.amount_usd);else if(currency==='EGP'){if(num(p.converted_egp)>0)supplier+=num(p.converted_egp);else if(num(p.amount_usd)>0)missing=true;}else if(num(p.amount_usd)>0)missing=true;}
-for(const {expense,orders,amount,missingRate} of linkedExpenses){
- if(!orders.some(order=>same(order,ref)))continue;
+const rowExpenses=ref===null?administrativeExpenses:orderExpenses.filter(({orders})=>orders.some(order=>same(order,ref)));
+for(const {expense,amount,missingRate} of rowExpenses){
  if(missingRate){missing=true;continue;}
  const categoryAmounts=expenseCategoryAmounts(expense);
  if(expense.currency==='USD'&&currency==='EGP'){
@@ -3712,11 +3714,17 @@ for(const {expense,orders,amount,missingRate} of linkedExpenses){
 }
 totals.sale+=sale;totals.supplier+=supplier;totals.cost+=cost;totals.missing||=missing;for(const [c,v] of cats)totals.categories.set(c,(totals.categories.get(c)||0)+v);
 const result=sale-supplier-cost;
-return '<tr><td><b>'+esc(ref)+'</b></td><td>'+money(sale)+'</td><td>'+money(supplier)+'</td>'+categories.map(c=>'<td>'+money(cats.get(c)||0)+'</td>').join('')+'<td>'+money(cost)+'</td><td style="font-weight:800;color:'+(result<0?'#b42318':'#176b56')+'">'+(missing?'Missing exchange rate':money(result))+'</td></tr>';}).join('');
+return '<tr><td><b>'+(ref===null?'Custos administrativos':esc(ref))+'</b></td><td>'+money(sale)+'</td><td>'+money(supplier)+'</td>'+categories.map(c=>'<td>'+money(cats.get(c)||0)+'</td>').join('')+'<td>'+money(cost)+'</td><td style="font-weight:800;color:'+(result<0?'#b42318':'#176b56')+'">'+(missing?'Missing exchange rate':money(result))+'</td></tr>';}).join('');
 const headers=['<th>PO</th>','<th>Total sales</th>','<th>Paid to supplier (−)</th>',
   ...categories.map(category=>'<th title="'+esc(category)+'"><span class="dre-category-label">'+esc(category)+'</span></th>'),
   '<th>Total expenses (−)</th>','<th>RESULT</th>'];
-return '<h2>DRE · POs · '+esc(currency)+'</h2><div class="card table-card"><table class="data-table dre-po-table"><thead><tr>'+headers.join('')+'</tr></thead><tbody>'+rows+'</tbody><tfoot><tr><th>TOTAL</th><th>'+money(totals.sale)+'</th><th>'+money(totals.supplier)+'</th>'+categories.map(c=>'<th>'+money(totals.categories.get(c)||0)+'</th>').join('')+'<th>'+money(totals.cost)+'</th><th>'+(totals.missing?'Missing exchange rate':money(totals.sale-totals.supplier-totals.cost))+'</th></tr></tfoot></table></div><p class="muted">Resultado = vendas − pagamentos ao fornecedor − despesas. Em EGP, despesas em USD usam o câmbio salvo na despesa. Despesas compartilhadas aparecem integrais em cada PO; o total reflete as linhas exibidas e pode repetir esses custos. Selecione uma PO para consultar os detalhes.</p>';
+const administrativeDetails=filter?'':`
+<h3>Custos administrativos · despesas sem embarque (${esc(currency)})</h3>
+<div class="card table-card"><table class="data-table"><thead><tr><th>Data</th><th>Fornecedor</th><th>Fatura</th><th>Descrição</th><th>Categoria</th><th>Valor original</th><th>Custo em ${esc(currency)}</th></tr></thead><tbody>${administrativeExpenses.slice().sort((a,b)=>String(b.expense.date||'').localeCompare(String(a.expense.date||''))).map(({expense,amount,missingRate})=>'<tr>'+
+ [expense.date,expense.supplier,expense.invoice_number,expense.description,expense.category||'Other expenses',
+  (expense.currency||'EGP')+' '+money(expense.amount),missingRate?'Missing exchange rate':money(amount)]
+ .map(value=>'<td>'+esc(value||'—')+'</td>').join('')+'</tr>').join('')||'<tr><td colspan="7">Nenhuma despesa administrativa nesta moeda.</td></tr>'}</tbody></table></div>`;
+return '<h2>DRE · POs · '+esc(currency)+'</h2><div class="card table-card"><table class="data-table dre-po-table"><thead><tr>'+headers.join('')+'</tr></thead><tbody>'+rows+'</tbody><tfoot><tr><th>TOTAL</th><th>'+money(totals.sale)+'</th><th>'+money(totals.supplier)+'</th>'+categories.map(c=>'<th>'+money(totals.categories.get(c)||0)+'</th>').join('')+'<th>'+money(totals.cost)+'</th><th>'+(totals.missing?'Missing exchange rate':money(totals.sale-totals.supplier-totals.cost))+'</th></tr></tfoot></table></div><p class="muted">Resultado = vendas − pagamentos ao fornecedor − despesas. Em EGP, despesas em USD usam o câmbio salvo na despesa. Despesas compartilhadas aparecem integrais em cada PO; o total reflete as linhas exibidas e pode repetir esses custos. Selecione uma PO para consultar os detalhes.</p>'+administrativeDetails;
 }
 function render(){const ref=$('dreOrder').value;if(!ref){$('dreReport').innerHTML=overview();return;}
 const shipmentOf=s=>s.shipment_ref||s.data?.reference||s.data?.shipment||'';
