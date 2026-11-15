@@ -3807,7 +3807,7 @@ function supplierPaymentSummary(currency,total){
  return '<p>Total pago ao fornecedor (−): <b>'+label+' '+money(total)+
   '</b> · Pago por tonelada da compra: <b>'+perTonne+'</b>'+usdPerTonne+'</p>';
 }
-const summary=[...groups].map(([c,g])=>'<div class="card panel" style="margin:12px 0"><h3>'+esc(c)+'</h3><p>Valor total da venda: <b>'+money(g.sales)+'</b></p>'+(c==='EGP'?egpSalesInUsd(g.sales):'')+supplierPaymentSummary(c,g.supplier)+'<p>Total de despesas vinculadas (−): <b>'+money(g.cost)+'</b></p><p><b>Resultado · venda − fornecedor − despesas: '+(g.missingRate?'Pendente: falta câmbio em despesa ou pagamento ao fornecedor':money(g.sales-g.supplier-g.cost))+'</b></p></div>').join('');
+const summary=[...groups].map(([c,g])=>'<div class="card panel dre-currency-summary" style="margin:12px 0"><h3>'+esc(c)+'</h3><p>Valor total da venda: <b>'+money(g.sales)+'</b></p>'+(c==='EGP'?egpSalesInUsd(g.sales):'')+supplierPaymentSummary(c,g.supplier)+'<p>Total de despesas vinculadas (−): <b>'+money(g.cost)+'</b></p><p><b>Resultado · venda − fornecedor − despesas: '+(g.missingRate?'Pendente: falta câmbio em despesa ou pagamento ao fornecedor':money(g.sales-g.supplier-g.cost))+'</b></p></div>').join('');
 const cell=value=>'<td>'+esc(value??'—')+'</td>';
 const row=values=>'<tr>'+values.map(cell).join('')+'</tr>';
 const empty=(count,label)=>'<tr><td colspan="'+count+'">'+esc(label)+'</td></tr>';
@@ -3878,15 +3878,15 @@ const purchaseDetails=purchase.map(payment=>{
   displayedRate,egp>0?money(egp):'—'].map(cell).join('')+
   statementCell(reconciliationRows(new Set(['order:'+payment.id])),'debit')+'</tr>';
 }).join('');
-const table=(headers,rows)=>'<div class="card table-card"><table class="data-table"><thead><tr>'+headers.map(h=>'<th>'+esc(h)+'</th>').join('')+'</tr></thead><tbody>'+rows+'</tbody></table></div>';
-$('dreReport').innerHTML=overview()+'<h2>DRE · Shipment '+esc(ref)+'</h2><p>'+selected.length+' Sales Invoice(s) linked by Shipment: '+selected.map(s=>esc(s.invoice_number)).join(' · ')+'</p>'+summary+
+const table=(headers,rows,layout)=>'<div class="card table-card"><table class="data-table dre-detail-'+layout+'"><thead><tr>'+headers.map(h=>'<th>'+esc(h)+'</th>').join('')+'</tr></thead><tbody>'+rows+'</tbody></table></div>';
+$('dreReport').innerHTML=overview()+'<h2>DRE · Shipment '+esc(ref)+'</h2><p>'+selected.length+' Sales Invoice(s) linked by Shipment: '+selected.map(s=>esc(s.invoice_number)).join(' · ')+'</p>'+'<div class="dre-currency-summaries">'+summary+'</div>'+
  '<h3>Sales invoices &amp; bank reconciliation</h3>'+
  table(['Invoice','Invoice date','Buyer','Currency','Sold weight for PO (MT)','Unit price / MT','Invoice total','Reconciled amount','Sales allocated to PO','Bank statement · Date / Bank / Reference / Credit'],
-  saleDetails||empty(10,'No sales invoices linked to this shipment.'))+
+  saleDetails||empty(10,'No sales invoices linked to this shipment.'),'sales')+
  '<h3>Paid to supplier (−) &amp; bank reconciliation</h3><p>Total pago ao fornecedor: <b>USD '+money(purchase.reduce((n,p)=>n+num(p.amount_usd),0))+'</b></p>'+
  table(['Payment date','Payment bank','Payment reference','Paid USD','Exchange rate (EGP per USD)','Converted EGP','Bank statement · Date / Bank / Reference / Debit'],
-  purchaseDetails||empty(7,'No purchase payments registered.'))+
- '<p class="muted">Reconciled amount is shown for each full invoice. Bank statement amounts are shown as recorded and can cover several invoices or payments.</p>'+'<h3>Todas as despesas vinculadas · '+linked.length+'</h3>'+table(['Date','Supplier','Invoice','Description','Currency','Amount','Paid','USD rate','Converted EGP','Orders'],linked.map(d=>'<tr><td>'+esc(d.date)+'</td><td>'+esc(d.supplier)+'</td><td>'+esc(d.invoice_number)+'</td><td>'+esc(d.description)+'</td><td>'+esc(d.currency||'EGP')+'</td><td>'+money(d.amount)+'</td><td>'+money(d.paid)+'</td><td>'+(d.currency==='USD'&&expenseEgpRate(d)?esc(d.usd_egp_rate):'—')+'</td><td>'+(d.currency==='USD'&&expenseEgpRate(d)?money(expenseCost(d,'EGP')):'—')+'</td><td>'+esc(expenseRefs(d).join(' · '))+(expenseRefs(d).length>1?' · Shared expense / full amount':'')+'</td></tr>').join('')||'<tr><td colspan="10">No linked expenses.</td></tr>')+'<p class="muted">Valores separados por moeda. Despesas compartilhadas são mostradas pelo valor integral, sem rateio. Invoices com várias ordens têm venda e valor pago proporcionais ao valor dos itens da ordem. O resultado deduz os pagamentos ao fornecedor e as despesas da mesma moeda. Em EGP, o pagamento ao fornecedor usa o valor convertido registrado; USD mostra o valor original. Não some os dois equivalentes.</p>';
+  purchaseDetails||empty(7,'No purchase payments registered.'),'payments')+
+ '<p class="muted">Reconciled amount is shown for each full invoice. Bank statement amounts are shown as recorded and can cover several invoices or payments.</p>'+'<h3>Todas as despesas vinculadas · '+linked.length+'</h3>'+table(['Date','Supplier','Invoice','Description','Currency','Amount','Paid','USD rate','Converted EGP','Orders'],linked.map(d=>'<tr><td>'+esc(d.date)+'</td><td>'+esc(d.supplier)+'</td><td>'+esc(d.invoice_number)+'</td><td>'+esc(d.description)+'</td><td>'+esc(d.currency||'EGP')+'</td><td>'+money(d.amount)+'</td><td>'+money(d.paid)+'</td><td>'+(d.currency==='USD'&&expenseEgpRate(d)?esc(d.usd_egp_rate):'—')+'</td><td>'+(d.currency==='USD'&&expenseEgpRate(d)?money(expenseCost(d,'EGP')):'—')+'</td><td>'+esc(expenseRefs(d).join(' · '))+(expenseRefs(d).length>1?' · Shared expense / full amount':'')+'</td></tr>').join('')||'<tr><td colspan="10">No linked expenses.</td></tr>','expenses')+'<p class="muted">Valores separados por moeda. Despesas compartilhadas são mostradas pelo valor integral, sem rateio. Invoices com várias ordens têm venda e valor pago proporcionais ao valor dos itens da ordem. O resultado deduz os pagamentos ao fornecedor e as despesas da mesma moeda. Em EGP, o pagamento ao fornecedor usa o valor convertido registrado; USD mostra o valor original. Não some os dois equivalentes.</p>';
 }
 async function load(){if(busy){refreshPending=true;return}busy=true;$('dreMessage').textContent='Loading DRE…';try{const a=await read('shipments'),b=await read('egypt_sales_invoices'),c=await read('egypt_expenses'),d=await read('egypt_order_payments'),e=await read('egypt_sales_payments'),f=await read('egypt_bank_reconciliations');const [links,banks]=await Promise.all([read('egypt_bank_reconciliation_links'),read('egypt_bank_profiles')]);reconciliationLinks=links;bankProfiles=banks;shipmentWeights=new Map(a.map(shipment=>[shipment.reference,num(shipment.quantity_kg)]));refs=[...shipmentWeights.keys()];sales=b;expenses=c;payments=d;receipts=e;reconciliations=f;const selected=$('dreOrder').value;$('dreOrder').innerHTML='<option value="">All POs</option>'+refs.map(r=>'<option value="'+esc(r)+'">'+esc(r)+'</option>').join('');$('dreOrder').value=selected;loaded=true;render();$('dreMessage').textContent='';}catch(e){loaded=false;$('dreReport').innerHTML='';$('dreMessage').textContent='Could not load DRE: '+e.message;}finally{busy=false;if(refreshPending){refreshPending=false;load();}}}
 tab.onclick=()=>{tabs.querySelectorAll('button').forEach(b=>b.classList.toggle('active',b===tab));for(const id of ['expensePanel','reconciliationPanel','legacyReconciliationPanel'])$(id).hidden=true;panel.hidden=false;load();};
@@ -3894,7 +3894,8 @@ tabs.querySelectorAll('[data-ft]').forEach(b=>b.addEventListener('click',()=>{pa
 $('drePdf').onclick=()=>{
  if(busy||!loaded||!$('dreReport').querySelector('table')){$('dreMessage').textContent='Load the DRE before generating the PDF.';return;}
  const w=window.open('','_blank');if(!w){$('dreMessage').textContent='Allow pop-ups to generate the PDF.';return;}w.opener=null;
- const order=$('dreOrder').value||'All POs',currency=$('dreCurrency').value;
+ const selectedOrder=$('dreOrder').value;
+ const order=selectedOrder||'All POs',currency=$('dreCurrency').value;
  const marginMm=6,pxPerMm=96/25.4,landscapeWidth=297,landscapeHeight=210;
  w.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>DRE - ${esc(order)} - ${esc(currency)}</title>
  <style id="drePageSize"></style><style>
@@ -3913,10 +3914,32 @@ $('drePdf').onclick=()=>{
  .dre-po-table th:last-child,.dre-po-table td:last-child{background:#e3f2e9;border-left:2px solid #76a995;font-weight:800}
  .dre-po-table tfoot th{background:#dbe8eb;border-top:2px solid #819da6}
  .dre-po-table tfoot th:last-child{background:#cde9da}
+ .dre-order-print{print-color-adjust:exact;font-size:9.5px}
+ .dre-order-print header{border-bottom:2px solid #176b56;padding:0 0 4px;margin-bottom:5px}
+ .dre-order-print h2,.dre-order-print h3{color:#17483f;break-after:avoid}
+ .dre-order-print h2{margin:4px 0 2px}.dre-order-print h3{margin:5px 0 2px}
+ .dre-order-print p{margin:2px 0}.dre-order-print .muted{font-size:8.5px}
+ .dre-currency-summaries{display:flex;flex-wrap:wrap;gap:5px;margin:4px 0}
+ .dre-currency-summary{flex:1 1 29%;min-width:0;margin:0!important;padding:3px 5px;background:#f0f6f3;border:1px solid #d0e1db;break-inside:avoid}
+ .dre-currency-summary h3{margin:0 0 2px}
+ .dre-currency-summary p:last-child{border-top:1px solid #ceddd7;padding-top:2px}
+ .dre-order-print table{margin:0 0 3px}
+ .dre-order-print th,.dre-order-print td{padding:2px;border-width:0 0 1px;vertical-align:top}
+ .dre-order-print th{background:#dcebe5}
+ .dre-order-print thead{display:table-header-group;break-after:avoid}
+ .dre-order-print tbody tr:nth-child(even){background:#f4f8f6}
+ .dre-order-print .dre-po-table{width:100%;table-layout:auto}
+ .dre-detail-sales th:last-child,.dre-detail-payments th:last-child{width:32%}
+ .dre-detail-sales th:nth-child(4),.dre-detail-expenses th:nth-child(5){width:5%}
+ .dre-detail-expenses th:nth-child(4){width:24%}
+ .dre-detail-sales :is(th,td):nth-child(n+5):nth-child(-n+9),
+ .dre-detail-payments :is(th,td):nth-child(n+4):nth-child(-n+6),
+ .dre-detail-expenses :is(th,td):nth-child(n+6):nth-child(-n+9){text-align:right;font-variant-numeric:tabular-nums}
+ @media print{.dre-order-print .dre-currency-summaries{break-inside:avoid}}
  .actions{margin:8px 0}button{padding:6px 12px;cursor:pointer}
  @media print{.actions{display:none}th,.dre-po-table td:last-child{print-color-adjust:exact}}
  </style></head><body><div class="actions"><button onclick="window.print()">Print / Save as PDF</button></div>
- <main><header><h1>AUREA COMMERCIAL EGYPT</h1><b>DRE · Profit and loss by order</b>
+ <main class="${selectedOrder?'dre-order-print':''}"><header><h1>AUREA COMMERCIAL EGYPT</h1><b>DRE · Profit and loss by order</b>
  <p>Order: ${esc(order)} · Currency: ${esc(currency)} · Generated: ${esc(new Date().toLocaleString('en-GB'))}</p></header>
  ${$('dreReport').innerHTML}</main></body></html>`);
  w.document.close();
@@ -3926,7 +3949,8 @@ $('drePdf').onclick=()=>{
  const widthMm=sheet.scrollWidth>Math.ceil(sheet.getBoundingClientRect().width)
   ?Math.ceil(sheet.scrollWidth/pxPerMm)+2*marginMm+2:landscapeWidth;
  sheet.style.width=(widthMm-2*marginMm-2)+'mm';
- const heightMm=Math.max(landscapeHeight,Math.ceil(sheet.getBoundingClientRect().height/pxPerMm)+2*marginMm+2);
+ const heightMm=selectedOrder?landscapeHeight:
+  Math.max(landscapeHeight,Math.ceil(sheet.getBoundingClientRect().height/pxPerMm)+2*marginMm+2);
  w.document.getElementById('drePageSize').textContent=`@page{size:${widthMm}mm ${heightMm}mm;margin:${marginMm}mm}`;
  w.focus();w.setTimeout(()=>w.print(),250);
 };
