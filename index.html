@@ -3782,8 +3782,11 @@ const purchaseTonnes=num(shipmentWeights.get(ref))/1000;
 function supplierPaymentSummary(currency,total){
  const label=esc(currency);
  const perTonne=purchaseTonnes>0?label+' '+money(total/purchaseTonnes)+' / MT':'—';
+ const paidUsd=groups.get('USD')?.supplier||0;
+ const usdPerTonne=currency==='EGP'&&paidUsd>0&&purchaseTonnes>0
+  ?' · Em USD: <b>USD '+money(paidUsd/purchaseTonnes)+' / MT</b>':'';
  return '<p>Total pago ao fornecedor (−): <b>'+label+' '+money(total)+
-  '</b> · Pago por tonelada da compra: <b>'+perTonne+'</b></p>';
+  '</b> · Pago por tonelada da compra: <b>'+perTonne+'</b>'+usdPerTonne+'</p>';
 }
 const summary=[...groups].map(([c,g])=>'<div class="card panel" style="margin:12px 0"><h3>'+esc(c)+'</h3><p>Valor total da venda: <b>'+money(g.sales)+'</b></p>'+(c==='EGP'?egpSalesInUsd(g.sales):'')+supplierPaymentSummary(c,g.supplier)+'<p>Total de despesas vinculadas (−): <b>'+money(g.cost)+'</b></p><p><b>Resultado · venda − fornecedor − despesas: '+(g.missingRate?'Pendente: falta câmbio em despesa ou pagamento ao fornecedor':money(g.sales-g.supplier-g.cost))+'</b></p></div>').join('');
 const cell=value=>'<td>'+esc(value??'—')+'</td>';
