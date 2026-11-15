@@ -3724,13 +3724,14 @@ const saleRows=selected.map(invoice=>{
  g.sales+=amount;
  g.paid+=invoicePaid(invoice)*share;
  const weights=(items.length?linkedItems:[data]).map(item=>Number(item.quantity));
- const soldWeight=weights.length&&weights.every(weight=>Number.isFinite(weight)&&weight>0)
-  ?(weights.reduce((sum,weight)=>sum+weight,0)/1000).toLocaleString('en-US',{maximumFractionDigits:3}):'—';
+ const soldTonnes=weights.length&&weights.every(weight=>Number.isFinite(weight)&&weight>0)
+  ?weights.reduce((sum,weight)=>sum+weight,0)/1000:null;
+ const soldWeight=soldTonnes===null?'—':soldTonnes.toLocaleString('en-US',{maximumFractionDigits:3});
  const unitPrices=(items.length?linkedItems:[data]).map(item=>{
   const price=item.unitPrice,pricePerTonne=Number(price)*1000;
   return price==null||String(price).trim()===''||!Number.isFinite(pricePerTonne)?'—':money(pricePerTonne);
  });
- return {invoice,amount,currency,soldWeight,unitPrices};
+ return {invoice,amount,currency,soldTonnes,soldWeight,unitPrices};
 });
 for(const d of linked){
  group(d.currency||'EGP').cost+=num(d.amount);
@@ -3741,7 +3742,24 @@ for(const d of linked){
  }
 }
 for(const p of purchase){group('USD').supplier+=num(p.amount_usd);if(num(p.converted_egp)>0)group('EGP').supplier+=num(p.converted_egp);else if(num(p.amount_usd)>0)group('EGP').missingRate=true;}
-const summary=[...groups].map(([c,g])=>'<div class="card panel" style="margin:12px 0"><h3>'+esc(c)+'</h3><p>Valor total da venda: <b>'+money(g.sales)+'</b></p><p>Total pago ao fornecedor (−): <b>'+money(g.supplier)+'</b></p><p>Total de despesas vinculadas (−): <b>'+money(g.cost)+'</b></p><p><b>Resultado · venda − fornecedor − despesas: '+(g.missingRate?'Pendente: falta câmbio em despesa ou pagamento ao fornecedor':money(g.sales-g.supplier-g.cost))+'</b></p></div>').join('');
+const egpSales=saleRows.filter(sale=>sale.currency==='EGP');
+const convertedPurchases=purchase.filter(payment=>num(payment.amount_usd)>0&&num(payment.converted_egp)>0);
+const purchaseUsd=convertedPurchases.reduce((sum,payment)=>sum+num(payment.amount_usd),0);
+const purchaseEgp=convertedPurchases.reduce((sum,payment)=>sum+num(payment.converted_egp),0);
+const salesFx=purchaseUsd>0?purchaseEgp/purchaseUsd:0;
+const egpSoldTonnes=egpSales.every(sale=>sale.soldTonnes!==null)
+ ?egpSales.reduce((sum,sale)=>sum+sale.soldTonnes,0):0;
+function egpSalesInUsd(total){
+ if(!egpSales.length)return '';
+ if(!salesFx)return '<p>Venda em USD: câmbio da compra indisponível.</p>';
+ const totalUsd=total/salesFx;
+ const rate=salesFx.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:6});
+ return '<p>Preço médio de venda: <b>'+(egpSoldTonnes>0?'USD '+money(totalUsd/egpSoldTonnes)+' / MT':'—')+
+  '</b> · Venda total equivalente: <b>USD '+money(totalUsd)+
+  '</b> · Câmbio médio da compra: <b>'+rate+' EGP por USD</b> ('+convertedPurchases.length+
+  ' de '+purchase.filter(payment=>num(payment.amount_usd)>0).length+' pagamentos em USD com conversão)</p>';
+}
+const summary=[...groups].map(([c,g])=>'<div class="card panel" style="margin:12px 0"><h3>'+esc(c)+'</h3><p>Valor total da venda: <b>'+money(g.sales)+'</b></p>'+(c==='EGP'?egpSalesInUsd(g.sales):'')+'<p>Total pago ao fornecedor (−): <b>'+money(g.supplier)+'</b></p><p>Total de despesas vinculadas (−): <b>'+money(g.cost)+'</b></p><p><b>Resultado · venda − fornecedor − despesas: '+(g.missingRate?'Pendente: falta câmbio em despesa ou pagamento ao fornecedor':money(g.sales-g.supplier-g.cost))+'</b></p></div>').join('');
 const cell=value=>'<td>'+esc(value??'—')+'</td>';
 const row=values=>'<tr>'+values.map(cell).join('')+'</tr>';
 const empty=(count,label)=>'<tr><td colspan="'+count+'">'+esc(label)+'</td></tr>';
