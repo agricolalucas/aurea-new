@@ -3712,7 +3712,20 @@ const selected=sales.filter(s=>{const items=s.data?.items;return Array.isArray(i
 const linked=expenses.filter(expense=>expenseRefs(expense).some(order=>same(order,ref)));
 const purchase=payments.filter(p=>same(p.shipment_ref,ref)),groups=new Map();
 function group(c){if(!groups.has(c))groups.set(c,{sales:0,paid:0,cost:0,supplier:0,missingRate:false});return groups.get(c);}
-const saleRows=selected.map(s=>{const d=s.data||{},items=Array.isArray(d.items)?d.items:[],allGoods=items.reduce((n,i)=>n+num(i.total),0),goods=items.filter(i=>same(itemShipment(i,s),ref)).reduce((n,i)=>n+num(i.total),0),share=items.length&&allGoods>0?goods/allGoods:1,g=group(d.currency||'EGP');g.sales+=num(s.amount)*share;g.paid+=invoicePaid(s)*share;return {invoice:s,amount:num(s.amount)*share,currency:d.currency||'EGP'};});
+const saleRows=selected.map(invoice=>{
+ const data=invoice.data||{},items=Array.isArray(data.items)?data.items:[];
+ const linkedItems=items.filter(item=>same(itemShipment(item,invoice),ref));
+ const allGoods=items.reduce((sum,item)=>sum+num(item.total),0);
+ const goods=linkedItems.reduce((sum,item)=>sum+num(item.total),0);
+ const share=items.length&&allGoods>0?goods/allGoods:1;
+ const currency=data.currency||'EGP',amount=num(invoice.amount)*share,g=group(currency);
+ g.sales+=amount;
+ g.paid+=invoicePaid(invoice)*share;
+ const weights=(items.length?linkedItems:[data]).map(item=>Number(item.quantity));
+ const soldWeight=weights.length&&weights.every(weight=>Number.isFinite(weight)&&weight>0)
+  ?(weights.reduce((sum,weight)=>sum+weight,0)/1000).toLocaleString('en-US',{maximumFractionDigits:3}):'—';
+ return {invoice,amount,currency,soldWeight};
+});
 for(const d of linked){
  group(d.currency||'EGP').cost+=num(d.amount);
  if(d.currency==='USD'){
@@ -3731,13 +3744,16 @@ for(const link of reconciliationLinks){
  if(!linksByReconciliation.has(link.reconciliation_id))linksByReconciliation.set(link.reconciliation_id,[]);
  linksByReconciliation.get(link.reconciliation_id).push(link);
 }
-function reconciliationRows(keys){
+function matchingReconciliations(keys){
  return reconciliations.filter(entry=>{
   const links=linksByReconciliation.get(entry.id)||[];
   const systemLinks=links.filter(link=>link.system_key);
   return systemLinks.length?systemLinks.some(link=>keys.has(link.system_key)):
    (entry.data?.system||[]).some(item=>keys.has(item.key));
- }).flatMap(entry=>{
+ });
+}
+function reconciliationRows(keys,matched=matchingReconciliations(keys)){
+ return matched.flatMap(entry=>{
   const bank=bankProfiles.find(profile=>profile.id===entry.bank_id)?.data?.bank;
   const links=linksByReconciliation.get(entry.id)||[];
   const statementIds=new Set(links.map(link=>link.statement_id).filter(Boolean));
@@ -3751,26 +3767,53 @@ function reconciliationRows(keys){
 const statement=(entries,field)=>entries.map(entry=>[entry.date,entry.bank,entry.reference,entry.description,
  entry[field]!=null?[(entry.currency||''),money(entry[field])].filter(Boolean).join(' '):''].filter(Boolean).join(' · '));
 const statementCell=(entries,field)=>'<td>'+(entries.length?statement(entries,field).map(line=>esc(line||'Reconciled · statement details unavailable')).join('<br>'):'Not reconciled')+'</td>';
-const saleDetails=saleRows.map(({invoice,amount,currency})=>{
- const keys=new Set(['sales:'+invoice.invoice_number,...receipts.filter(p=>p.invoice_number===invoice.invoice_number).map(p=>'salespayment:'+p.id)]);
- return '<tr>'+[invoice.invoice_number,invoice.data?.date,invoice.buyer||invoice.data?.buyer,currency,money(invoice.amount),money(amount)].map(cell).join('')+
-  statementCell(reconciliationRows(keys),'credit')+'</tr>';
+function reconciledInvoiceAmount(invoice,payments,matched){
+ const invoiceKey='sales:'+invoice.invoice_number;
+ const paymentKeys=new Map(payments.map(payment=>['salespayment:'+payment.id,payment]));
+ const amounts=new Map();
+ for(const entry of matched){
+  const links=(linksByReconciliation.get(entry.id)||[]).filter(link=>link.system_key);
+  const system=entry.data?.system||[];
+  const keys=links.length?links.map(link=>link.system_key):system.map(item=>item.key);
+  for(const key of keys){
+   if(key!==invoiceKey&&!paymentKeys.has(key))continue;
+   const item=system.find(item=>item.key===key);
+   const raw=item?.amount??item?.credit??paymentKeys.get(key)?.amount;
+   if(raw==null||raw==='')continue;
+   const value=Number(raw);
+   if(Number.isFinite(value)&&value>=0)amounts.set(key,Math.max(amounts.get(key)||0,value));
+  }
+ }
+ if(!matched.length)return 0;
+ if(!amounts.size)return null;
+ const totalPayments=[...paymentKeys.keys()].reduce((sum,key)=>sum+(amounts.get(key)||0),0);
+ return Math.max(amounts.get(invoiceKey)||0,totalPayments);
+}
+const saleDetails=saleRows.map(({invoice,amount,currency,soldWeight})=>{
+ const invoicePayments=receipts.filter(payment=>payment.invoice_number===invoice.invoice_number);
+ const keys=new Set(['sales:'+invoice.invoice_number,...invoicePayments.map(payment=>'salespayment:'+payment.id)]);
+ const matched=matchingReconciliations(keys);
+ const reconciled=reconciledInvoiceAmount(invoice,invoicePayments,matched);
+ return '<tr>'+[invoice.invoice_number,invoice.data?.date,invoice.buyer||invoice.data?.buyer,currency,soldWeight,
+  money(invoice.amount),reconciled===null?'—':money(reconciled),money(amount)].map(cell).join('')+
+  statementCell(reconciliationRows(keys,matched),'credit')+'</tr>';
 }).join('');
 const purchaseDetails=purchase.map(payment=>{
- const rate=num(payment.usd_egp_rate);
- return '<tr>'+[payment.payment_date,payment.bank,payment.bank_reference,money(payment.amount_usd),
-  rate>0?payment.usd_egp_rate:'—',num(payment.converted_egp)>0?money(payment.converted_egp):'—'].map(cell).join('')+
+ const rate=num(payment.usd_egp_rate),usd=num(payment.amount_usd),egp=num(payment.converted_egp);
+ const displayedRate=rate>0?payment.usd_egp_rate:usd>0&&egp>0?(egp/usd).toLocaleString('en-US',{maximumFractionDigits:6})+' (calculated)':'—';
+ return '<tr>'+[payment.payment_date,payment.bank,payment.bank_reference,money(usd),
+  displayedRate,egp>0?money(egp):'—'].map(cell).join('')+
   statementCell(reconciliationRows(new Set(['order:'+payment.id])),'debit')+'</tr>';
 }).join('');
 const table=(headers,rows)=>'<div class="card table-card"><table class="data-table"><thead><tr>'+headers.map(h=>'<th>'+esc(h)+'</th>').join('')+'</tr></thead><tbody>'+rows+'</tbody></table></div>';
 $('dreReport').innerHTML=overview()+'<h2>DRE · Shipment '+esc(ref)+'</h2><p>'+selected.length+' Sales Invoice(s) linked by Shipment: '+selected.map(s=>esc(s.invoice_number)).join(' · ')+'</p>'+summary+
  '<h3>Sales invoices &amp; bank reconciliation</h3>'+
- table(['Invoice','Invoice date','Buyer','Currency','Invoice total','Sales allocated to PO','Bank statement · Date / Bank / Reference / Credit'],
-  saleDetails||empty(7,'No sales invoices linked to this shipment.'))+
+ table(['Invoice','Invoice date','Buyer','Currency','Sold weight for PO (MT)','Invoice total','Reconciled amount','Sales allocated to PO','Bank statement · Date / Bank / Reference / Credit'],
+  saleDetails||empty(9,'No sales invoices linked to this shipment.'))+
  '<h3>Paid to supplier (−) &amp; bank reconciliation</h3><p>Total pago ao fornecedor: <b>USD '+money(purchase.reduce((n,p)=>n+num(p.amount_usd),0))+'</b></p>'+
  table(['Payment date','Payment bank','Payment reference','Paid USD','Exchange rate (EGP per USD)','Converted EGP','Bank statement · Date / Bank / Reference / Debit'],
   purchaseDetails||empty(7,'No purchase payments registered.'))+
- '<p class="muted">Bank statement amounts are shown as recorded. A reconciliation covering several invoices or payments can appear on more than one row.</p>'+'<h3>Todas as despesas vinculadas · '+linked.length+'</h3>'+table(['Date','Supplier','Invoice','Description','Currency','Amount','Paid','USD rate','Converted EGP','Orders'],linked.map(d=>'<tr><td>'+esc(d.date)+'</td><td>'+esc(d.supplier)+'</td><td>'+esc(d.invoice_number)+'</td><td>'+esc(d.description)+'</td><td>'+esc(d.currency||'EGP')+'</td><td>'+money(d.amount)+'</td><td>'+money(d.paid)+'</td><td>'+(d.currency==='USD'&&expenseEgpRate(d)?esc(d.usd_egp_rate):'—')+'</td><td>'+(d.currency==='USD'&&expenseEgpRate(d)?money(expenseCost(d,'EGP')):'—')+'</td><td>'+esc(expenseRefs(d).join(' · '))+(expenseRefs(d).length>1?' · Shared expense / full amount':'')+'</td></tr>').join('')||'<tr><td colspan="10">No linked expenses.</td></tr>')+'<p class="muted">Valores separados por moeda. Despesas compartilhadas são mostradas pelo valor integral, sem rateio. Invoices com várias ordens têm venda e valor pago proporcionais ao valor dos itens da ordem. O resultado deduz os pagamentos ao fornecedor e as despesas da mesma moeda. Em EGP, o pagamento ao fornecedor usa o valor convertido registrado; USD mostra o valor original. Não some os dois equivalentes.</p>';
+ '<p class="muted">Reconciled amount is shown for each full invoice. Bank statement amounts are shown as recorded and can cover several invoices or payments.</p>'+'<h3>Todas as despesas vinculadas · '+linked.length+'</h3>'+table(['Date','Supplier','Invoice','Description','Currency','Amount','Paid','USD rate','Converted EGP','Orders'],linked.map(d=>'<tr><td>'+esc(d.date)+'</td><td>'+esc(d.supplier)+'</td><td>'+esc(d.invoice_number)+'</td><td>'+esc(d.description)+'</td><td>'+esc(d.currency||'EGP')+'</td><td>'+money(d.amount)+'</td><td>'+money(d.paid)+'</td><td>'+(d.currency==='USD'&&expenseEgpRate(d)?esc(d.usd_egp_rate):'—')+'</td><td>'+(d.currency==='USD'&&expenseEgpRate(d)?money(expenseCost(d,'EGP')):'—')+'</td><td>'+esc(expenseRefs(d).join(' · '))+(expenseRefs(d).length>1?' · Shared expense / full amount':'')+'</td></tr>').join('')||'<tr><td colspan="10">No linked expenses.</td></tr>')+'<p class="muted">Valores separados por moeda. Despesas compartilhadas são mostradas pelo valor integral, sem rateio. Invoices com várias ordens têm venda e valor pago proporcionais ao valor dos itens da ordem. O resultado deduz os pagamentos ao fornecedor e as despesas da mesma moeda. Em EGP, o pagamento ao fornecedor usa o valor convertido registrado; USD mostra o valor original. Não some os dois equivalentes.</p>';
 }
 async function load(){if(busy){refreshPending=true;return}busy=true;$('dreMessage').textContent='Loading DRE…';try{const a=await read('shipments'),b=await read('egypt_sales_invoices'),c=await read('egypt_expenses'),d=await read('egypt_order_payments'),e=await read('egypt_sales_payments'),f=await read('egypt_bank_reconciliations');const [links,banks]=await Promise.all([read('egypt_bank_reconciliation_links'),read('egypt_bank_profiles')]);reconciliationLinks=links;bankProfiles=banks;refs=[...new Set(a.map(r=>r.reference))];sales=b;expenses=c;payments=d;receipts=e;reconciliations=f;const selected=$('dreOrder').value;$('dreOrder').innerHTML='<option value="">All POs</option>'+refs.map(r=>'<option value="'+esc(r)+'">'+esc(r)+'</option>').join('');$('dreOrder').value=selected;loaded=true;render();$('dreMessage').textContent='';}catch(e){loaded=false;$('dreReport').innerHTML='';$('dreMessage').textContent='Could not load DRE: '+e.message;}finally{busy=false;if(refreshPending){refreshPending=false;load();}}}
 tab.onclick=()=>{tabs.querySelectorAll('button').forEach(b=>b.classList.toggle('active',b===tab));for(const id of ['expensePanel','reconciliationPanel','legacyReconciliationPanel'])$(id).hidden=true;panel.hidden=false;load();};
