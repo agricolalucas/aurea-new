@@ -2286,16 +2286,29 @@ const filters=[['Filter','Value'],...['expenseFilterService','expenseFilterCurre
   const sum=t=>{const a={};rows.forEach(x=>{const c=x.currency||'EGP',am=+x.amount||0,p=+x.paid||0,n=t==='total'?am:t==='paid'?p:Math.max(0,am-p);a[c]=(a[c]||0)+n});return Object.entries(a).map(([c,n])=>`${c} ${n.toFixed(2)}`).join(' | ')||'—'};
   w.document.write(`<!doctype html><html><head><title>Expenses Report</title><style>
   @page{size:A4 landscape;margin:8mm}
-  body{font-family:Arial;margin:0;color:#111}
-  .category-filter{margin:4px 0;font-size:11px}.summary{display:flex;gap:12px;margin:18px 0}.box{border:1px solid #bbb;padding:10px;flex:1}table{width:100%;table-layout:fixed;border-collapse:collapse;font-size:10px;line-height:1.15}th,td{border:1px solid #bbb;padding:2px 4px;vertical-align:top;overflow-wrap:anywhere}th{background:#eee}tr{break-inside:avoid}
+  *{box-sizing:border-box}
+  body{font:10px/1.25 Arial,sans-serif;margin:0;color:#17313b;print-color-adjust:exact}
+  h1{font-size:18px;margin:0 0 4px}
+  .category-filter{margin:0 0 6px;color:#425d69}
+  .summary{display:flex;gap:5px;margin:0 0 7px}
+  .box{border:1px solid #ccd9d6;background:#f3f8f6;padding:4px 6px;flex:1;break-inside:avoid}
+  .box b{font-size:10px}
+  table{width:100%;table-layout:fixed;border-collapse:collapse}
+  th,td{border-bottom:1px solid #d6e0dd;padding:2px 2px;vertical-align:top;overflow-wrap:anywhere}
+  th{background:#dceae5;text-align:left}
+  thead{display:table-header-group}
+  tbody tr:nth-child(even){background:#f4f8f7}
+  tr{break-inside:avoid}
   .financial-column{white-space:nowrap}
-  td.amount-column{text-align:right;font-variant-numeric:tabular-nums}
-  .expense-category{color:#173d35;background:#edf5f1;font-weight:700;print-color-adjust:exact}
+  .amount-column{text-align:right;font-variant-numeric:tabular-nums}
+  .expense-category{color:#173d35;font-weight:600}
+  .expense-status{font-weight:700;color:#176b56}
+  .expense-status.payable{color:#8b4d07}
   </style></head><body><h1>Expenses / Financial Cash Control</h1><p class="category-filter"><b>Category:</b> ${esc(category)}</p><div class="summary"><div class="box"><b>Total Expenses</b><br>${sum('total')}</div><div class="box"><b>Paid</b><br>${sum('paid')}</div><div class="box"><b>Payable</b><br>${sum('payable')}</div></div><table><colgroup>
   <col style="width:6%"><col style="width:7%"><col style="width:12%"><col style="width:19.5%">
   <col style="width:8%"><col style="width:6%"><col style="width:5%"><col style="width:8%">
   <col style="width:5%"><col style="width:6.5%"><col style="width:6.5%"><col style="width:6.5%"><col style="width:4%">
-  </colgroup><thead><tr><th>Date</th><th>Shipment</th><th scope="col" class="expense-category">Category</th><th>Description</th><th>Supplier</th><th>Invoice / NF</th><th>Invoice File</th><th>Bank Payment</th><th class="financial-column">Currency</th><th class="financial-column">Amount</th><th class="financial-column">Paid</th><th class="financial-column">Balance</th><th class="financial-column">Status</th></tr></thead><tbody>${rows.map(x=>{const b=Math.max(0,(+x.amount||0)-(+x.paid||0));return `<tr><td>${x.date||''}</td><td>${x.shipment||'—'}</td><td class="expense-category">${esc(x.category||"—")}</td><td>${x.description||''}</td><td>${x.supplier||'—'}</td><td>${x.invoice_number||'—'}</td><td>${x.invoice_file||'—'}</td><td>${x.bank_payment||'—'}</td><td class="financial-column">${esc(x.currency||'EGP')}</td><td class="financial-column amount-column">${(+x.amount||0).toFixed(2)}</td><td class="financial-column amount-column">${(+x.paid||0).toFixed(2)}</td><td class="financial-column amount-column">${b.toFixed(2)}</td><td class="financial-column">${b>0?'Payable':'Paid'}</td></tr>`}).join('')}</tbody></table><script>window.onload=()=>window.print()<\/script>
+  </colgroup><thead><tr><th>Date</th><th>Shipment</th><th scope="col" class="expense-category">Category</th><th>Description</th><th>Supplier</th><th>Invoice / NF</th><th>Invoice File</th><th>Bank Payment</th><th class="financial-column">Currency</th><th class="financial-column amount-column">Amount</th><th class="financial-column amount-column">Paid</th><th class="financial-column amount-column">Balance</th><th class="financial-column">Status</th></tr></thead><tbody>${rows.map(x=>{const b=Math.max(0,(+x.amount||0)-(+x.paid||0));return `<tr><td>${esc(x.date||'')}</td><td>${esc(x.shipment||'—')}</td><td class="expense-category">${esc(x.category||"—")}</td><td>${esc(x.description||'')}</td><td>${esc(x.supplier||'—')}</td><td>${esc(x.invoice_number||'—')}</td><td>${esc(x.invoice_file||'—')}</td><td>${esc(x.bank_payment||'—')}</td><td class="financial-column">${esc(x.currency||'EGP')}</td><td class="financial-column amount-column">${(+x.amount||0).toFixed(2)}</td><td class="financial-column amount-column">${(+x.paid||0).toFixed(2)}</td><td class="financial-column amount-column">${b.toFixed(2)}</td><td class="financial-column expense-status${b>0?' payable':''}">${b>0?'Payable':'Paid'}</td></tr>`}).join('')}</tbody></table><script>window.onload=()=>window.print()<\/script>
 
 
 </body></html>`);w.document.close();
