@@ -2425,7 +2425,8 @@ const filters=[['Filter','Value'],...['expenseFilterService','expenseFilterCurre
     const adjustmentNet=Number(adjustment?.debit||0)-Number(adjustment?.credit||0);
     const reconciledNet=systemNet+adjustmentNet;
     const difference=(debit-credit)-reconciledNet;
-    const adjustmentRows=adjustment?'<tr class="adjustment"><td>Adjustment · '+esc(adjustment.date||'—')+'</td><td>'+esc(adjustment.description||adjustment.reference||'Reconciliation adjustment')+' · '+(Number(adjustment.debit||0)?'Debit':'Credit')+'</td><td class="num">'+number(Number(adjustment.debit||0)+Number(adjustment.credit||0))+'</td></tr>':'';
+    const adjustmentRows=adjustment?'<tr class="adjustment"><td>Reconciliation adjustment · '+esc(adjustment.date||'—')+'</td><td>'+esc(adjustment.description||adjustment.reference||'—')+'</td><td class="num">'+number(adjustmentNet)+'</td></tr>':'';
+    const adjustmentDetails=adjustment?'<div class="adjustment-details"><b>RECONCILED WITH ADJUSTMENT</b><table><thead><tr><th>Adjustment date</th><th>Reason / Description</th><th class="num">Debit · '+esc(currency)+'</th><th class="num">Credit · '+esc(currency)+'</th><th class="num">Difference before adjustment</th><th class="num">Final difference</th></tr></thead><tbody><tr><td>'+esc(adjustment.date||'—')+'</td><td>'+esc(adjustment.description||adjustment.reference||'—')+'</td><td class="num">'+number(adjustment.debit)+'</td><td class="num">'+number(adjustment.credit)+'</td><td class="num">'+number((debit-credit)-systemNet)+'</td><td class="num">'+number(difference)+'</td></tr></tbody></table></div>':'<p class="muted">Reconciled without adjustment.</p>';
     const reconciledRows='<tr class="total"><td colspan="2">TOTAL RECONCILED (DEBIT − CREDIT) · '+esc(currency)+'</td><td class="num">'+number(reconciledNet)+'</td></tr><tr><td colspan="2">Difference vs bank statement · '+esc(currency)+'</td><td class="num">'+number(difference)+'</td></tr>';
     const invoiceList=items.map(item=>{
       const saved=allExpenses.get(item.key);
@@ -2436,13 +2437,13 @@ const filters=[['Filter','Value'],...['expenseFilterService','expenseFilterCurre
     const bankList=payments.map(p=>'<tr><td>'+esc(p.date||'—')+'</td><td>'+esc(bankNames.get(entry.bank_id)||p.bank||'—')+
       '</td><td>'+esc([p.reference,p.description].filter(Boolean).join(' · ')||'—')+'</td><td class="num">'+number(p.credit)+
       '</td><td class="num">'+number(p.debit)+'</td></tr>').join('');
-    return '<section class="reconciliation"><h3>Reconciliation #'+(index+1)+' · '+esc(currency)+'</h3>'+
+    return '<section class="reconciliation"><h3>Reconciliation #'+(index+1)+' · '+esc(currency)+(adjustment?' · WITH ADJUSTMENT':' · WITHOUT ADJUSTMENT')+'</h3>'+
       '<div class="columns"><div><table><thead><tr><th>Invoice / Entry</th><th>Supplier / Description</th><th class="num">Amount</th></tr></thead><tbody>'+
       invoiceList+'</tbody><tfoot><tr class="total"><td colspan="2">TOTAL INVOICES / ENTRIES · '+esc(currency)+'</td><td class="num">'+number(systemTotal)+
       '</td></tr>'+adjustmentRows+reconciledRows+'</tfoot></table></div><div><table><thead><tr><th>Date</th><th>Bank</th><th>Statement reference / Description</th><th class="num">Credit</th><th class="num">Debit</th></tr></thead><tbody>'+
       (bankList||'<tr><td colspan="5">Bank statement details unavailable</td></tr>')+
       '</tbody><tfoot><tr class="total"><td colspan="3">TOTAL BANK STATEMENT · '+esc(currency)+'</td><td class="num">'+number(credit)+'</td><td class="num">'+number(debit)+
-      '</td></tr></tfoot></table></div></div></section>';
+      '</td></tr></tfoot></table></div></div>'+adjustmentDetails+'</section>';
   }).join('');
   const category=document.getElementById('expenseFilterCategory')?.value||'All categories';
   w.document.open();
@@ -2452,7 +2453,7 @@ const filters=[['Filter','Value'],...['expenseFilterService','expenseFilterCurre
     'p{margin:3px 0 7px}table{width:100%;border-collapse:collapse}th,td{padding:3px 4px;border-bottom:1px solid #d6e0dd;text-align:left;vertical-align:top;overflow-wrap:anywhere}'+
     'th{background:#edf3f1}thead{display:table-header-group}tr{break-inside:avoid}tbody tr:nth-child(even){background:#f7f9f8}.num{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}'+
     '.total{font-weight:bold;background:#dceae5}.muted{color:#607780}.columns{display:grid;grid-template-columns:42% 58%;gap:0}.columns>div{min-width:0}.columns>div:first-child{padding-right:8px}'+
-    '.reconciliation{margin:0 0 10px;break-inside:avoid}h2,h3{break-after:avoid}</style></head><body>'+
+    '.adjustment,.adjustment-details{background:#fff3cf;color:#654600}.adjustment-details{border:1px solid #d5b25a;padding:5px;margin-top:5px}.adjustment-details th{background:#ffebae}.reconciliation{margin:0 0 10px;break-inside:avoid}h2,h3{break-after:avoid}</style></head><body>'+
     '<h1>AUREA EGYPT · '+(includeReconciliation?'Expenses & Bank Reconciliation':'Invoices / Expenses')+'</h1><p>Category: '+esc(category)+' · '+rows.length+' invoices / expenses · Current filters</p>'+
     '<h2>All invoices / expenses</h2><table><thead><tr><th>Date</th><th>Shipment</th><th>Invoice / NF</th><th>Supplier</th><th>Category</th><th style="width:22%">Description</th><th>Currency</th><th class="num">Amount</th><th class="num">Paid</th><th class="num">Balance</th>'+(includeReconciliation?'<th>Reconciliation</th>':'')+'</tr></thead><tbody>'+
     invoiceRows+totalRows+'</tbody></table>'+(includeReconciliation?'<h2>Bank reconciliation listing</h2><p class="muted">Each reconciliation is listed once with all linked invoices / entries and bank statement payments. Entries outside the filter are excluded from invoice totals.</p>'+(reconciliationRows||'<p>No reconciliations linked to these invoices.</p>'):'')+
