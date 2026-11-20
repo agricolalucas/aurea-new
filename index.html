@@ -1423,6 +1423,54 @@ document.getElementById('editSaleAddBuyer')?.addEventListener('click',addBuyerFr
     if(info)info.textContent=`${openCount} open receivable${openCount===1?'':'s'}`;
   }
   const editSaleModal=document.getElementById('editSaleModal');
+  const editItemsBox=document.createElement('div');
+  editItemsBox.className='field full';
+  document.getElementById('editSaleForm').querySelector('.form').prepend(editItemsBox);
+  let editOriginalItems=[];
+  function invoiceItems(data){
+    const items=Array.isArray(data.items)?data.items:JSON.parse(data.items||'[]');
+    return items.length?items:[{reference:data.reference,product:data.product,lot:data.lot,quantity:Number(data.quantity),unitPrice:Number(data.unitPrice)}];
+  }
+  function readEditItems(){
+    return [...editItemsBox.querySelectorAll('[data-edit-item]')].map(row=>{
+      const get=name=>row.querySelector('[data-field="'+name+'"]').value;
+      const quantity=Number(get('quantity')),unitPrice=Number(get('unitPrice'));
+      return {reference:get('reference'),product:get('product'),lot:get('lot'),quantity,unitPrice,total:Math.round(quantity*unitPrice*100)/100};
+    });
+  }
+  function updateEditItems(){
+    const form=document.getElementById('editSaleForm'),items=readEditItems(),first=items[0]||{};
+    for(const name of ['reference','product','lot','unitPrice'])form.elements[name].value=first[name]??'';
+    form.elements.quantity.value=items.reduce((sum,item)=>sum+item.quantity,0);
+    const goods=items.reduce((sum,item)=>sum+item.total,0),data=Object.fromEntries(new FormData(form));
+    document.getElementById('editSaleProductsSubtotal').textContent=money(goods);
+    document.getElementById('editSaleTaxSubtotal').textContent=money(window.egyptInvoiceTax(goods,data));
+    document.getElementById('editSaleFreightSubtotal').textContent=money(window.egyptInvoiceFreightEGP(data));
+    document.getElementById('editSalesFreightTotal').textContent=money(window.egyptInvoiceFinal(goods,data));
+  }
+  function addEditItem(item={}){
+    const row=document.createElement('div');
+    row.dataset.editItem='';
+    row.style.cssText='display:grid;grid-template-columns:2fr 2fr 1fr 1fr 1fr auto;gap:8px;margin:8px 0;align-items:end';
+    const references=new Set(editOriginalItems.map(item=>item.reference).filter(Boolean));
+    if(item.reference)references.add(item.reference);
+    for(const entry of document.querySelectorAll('#importFileList .file-item'))references.add(shipmentRefFromItem(entry));
+    const options=[...references].filter(Boolean).map(ref=>'<option value="'+safe(ref)+'">'+safe(ref+' · '+(getCargoShipmentData(ref).product||''))+'</option>').join('');
+    row.innerHTML='<label>Shipment<select data-field="reference" required><option value="">Select shipment</option>'+options+'</select></label>'+
+      ['product','lot','quantity','unitPrice'].map(name=>'<label>'+({product:'Product',lot:'Lot',quantity:'Quantity (kg)',unitPrice:'Unit price (EGP / kg)'}[name])+
+      '<input data-field="'+name+'" type="'+(['quantity','unitPrice'].includes(name)?'number':'text')+'" '+(['quantity','unitPrice'].includes(name)?'min="'+(name==='quantity'?'0.001':'0')+'" step="any" required':'')+'></label>').join('')+
+      '<button type="button" class="secondary" aria-label="Remove item">×</button>';
+    for(const name of ['reference','product','lot','quantity','unitPrice'])row.querySelector('[data-field="'+name+'"]').value=item[name]??'';
+    row.querySelector('select').addEventListener('change',event=>{
+      const stock=saleStockByRef(event.target.value);
+      for(const name of ['product','lot'])row.querySelector('[data-field="'+name+'"]').value=stock[name]||'';
+      updateEditItems();
+    });
+    row.querySelector('button').onclick=()=>{if(editItemsBox.querySelectorAll('[data-edit-item]').length>1){row.remove();updateEditItems();}};
+    editItemsBox.querySelector('[data-edit-items]').append(row);
+  }
+  editItemsBox.addEventListener('input',updateEditItems);
+  document.getElementById('editSaleForm').addEventListener('input',event=>{if(!editItemsBox.contains(event.target))updateEditItems();});
   function openEditSale(row){
     const f=document.getElementById('editSaleForm');
     f.elements.originalInvoice.value=row.dataset.invoice||'';f.dataset.invoiceBankId=row.dataset.invoiceBankId||'';f.dataset.invoiceBankDetails=row.dataset.invoiceBankDetails||'';f.elements.invoiceBankId.innerHTML='<option value="'+safe(row.dataset.invoiceBankId||'')+'">Current bank</option>';f.elements.invoiceBankDetails.value=row.dataset.invoiceBankDetails||'';
@@ -1433,7 +1481,15 @@ document.getElementById('editSaleAddBuyer')?.addEventListener('click',addBuyerFr
     f.elements.reference.value=row.dataset.reference||'';
     f.elements.product.value=row.dataset.product||'';
     f.elements.lot.value=row.dataset.lot||'';
-    const multiline=JSON.parse(row.dataset.items||'[]').length>1;for(const key of ['quantity','unitPrice','product','lot','reference'])f.elements[key].readOnly=multiline;f.elements.quantity.value=row.dataset.quantity||'';
+    editOriginalItems=invoiceItems(row.dataset);
+    editItemsBox.innerHTML='<b>Sales items</b><div data-edit-items></div><button type="button" class="secondary" data-add-edit-item>+ Add item</button>';
+    editOriginalItems.forEach(addEditItem);
+    editItemsBox.querySelector('[data-add-edit-item]').onclick=()=>{addEditItem();updateEditItems();};
+    for(const key of ['quantity','unitPrice','product','lot','reference']){
+      f.elements[key].readOnly=false;
+      f.elements[key].closest('.field').hidden=true;
+    }
+    f.elements.quantity.value=row.dataset.quantity||'';
     f.elements.unitPrice.value=row.dataset.unitPrice||'';f.elements.salesTaxRate.value=row.dataset.salesTaxRate||0;f.elements.salesTaxMode.value=row.dataset.salesTaxMode||'add';document.getElementById('editSaleTaxSubtotal').textContent=money(window.egyptInvoiceTax(window.egyptInvoiceGoods(row.dataset),row.dataset));f.elements.salesFreight.value=row.dataset.salesFreight||0;f.elements.salesFreightCurrency.value=row.dataset.salesFreightCurrency||'EGP';f.elements.salesFreightRate.value=row.dataset.salesFreightRate||'';document.getElementById('editSalesFreightTotal').textContent=money(row.dataset.total);document.getElementById('editSaleFreightSubtotal').textContent=money(window.egyptInvoiceFreightEGP(row.dataset));document.getElementById('editSaleProductsSubtotal').textContent=money(window.egyptInvoiceGoods(row.dataset));
     if(f.elements.plateTruck)f.elements.plateTruck.value=row.dataset.plateTruck||'';
     if(f.elements.truckStatus)f.elements.truckStatus.value=row.dataset.truckStatus||'To be loaded';
@@ -1441,6 +1497,7 @@ document.getElementById('editSaleAddBuyer')?.addEventListener('click',addBuyerFr
     f.elements.seller.value=row.dataset.seller||'';
     f.elements.paymentStatus.value=Number(row.dataset.paid||0)>=Number(row.dataset.total||0)?'Paid':Number(row.dataset.paid||0)>0?'Partially Paid':'Pending';
     document.getElementById('editSaleLabel').textContent=row.dataset.invoice||'';
+    updateEditItems();
     toggleModal(editSaleModal,true);
   }
   document.querySelector('.editSaleClose').onclick=document.querySelector('.editSaleCancel').onclick=()=>toggleModal(editSaleModal,false);
@@ -1449,16 +1506,28 @@ document.getElementById('editSaleAddBuyer')?.addEventListener('click',addBuyerFr
     const d=Object.fromEntries(new FormData(e.target));
     const row=[...document.querySelectorAll('#salesTable tbody tr')].find(r=>r.dataset.invoice===d.originalInvoice);
     if(!row)return;
-    const oldQty=Number(row.dataset.quantity||0),newQty=Number(d.quantity||0),ref=row.dataset.reference;
-    const received=getReceivingTickets(ref).reduce((sum,t)=>sum+(Number(t.weight)||0),0);
-    const soldOther=[...document.querySelectorAll('#salesTable tbody tr')].filter(r=>r!==row&&r.dataset.reference===ref).reduce((sum,r)=>sum+Number(r.dataset.quantity||0),0);
-    const maxQty=Math.max(0,received-soldOther);
-    if(newQty!==oldQty&&newQty>maxQty){notify(`Quantity exceeds available inventory. Maximum for this invoice: ${maxQty.toLocaleString('en-US')} kg`);return;}
-    const oldInvoice=row.dataset.invoice,total=window.egyptInvoiceFinal(newQty*Number(d.unitPrice||0),d),paid=(salesPayments.get(oldInvoice)||[]).reduce((sum,p)=>sum+Number(p.paymentAmount||0),0);
+    const items=readEditItems();
+    if(!items.length||items.some(item=>!item.reference||!item.product||!Number.isFinite(item.quantity)||item.quantity<=0||!Number.isFinite(item.unitPrice)||item.unitPrice<0)){
+      notify('Select a shipment, product, positive quantity and valid unit price for each item.');return;
+    }
+    const oldInvoice=row.dataset.invoice;
     if(d.invoice!==oldInvoice){notify('Keep the existing invoice number when editing.');return;}
-    const items=JSON.parse(row.dataset.items||'[]');
-    if(items.length<=1){items.splice(0,items.length,{...(items[0]||{}),reference:d.reference,product:d.product,lot:d.lot,quantity:newQty,unitPrice:Number(d.unitPrice||0),total:newQty*Number(d.unitPrice||0)});}
-    try{await saveSale({...d,items,total:items.length>1?window.egyptInvoiceFinal(items.reduce((n,i)=>n+Number(i.total||0),0),d):total,invoiceBankId:d.invoiceBankId||'',invoiceBankDetails:d.invoiceBankDetails||'',paid})}catch(error){notify('Could not update invoice: '+error.message);return;}
+    const totalsByShipment=list=>{
+      const totals=new Map();
+      for(const item of list)totals.set(item.reference,(totals.get(item.reference)||0)+Number(item.quantity||0));
+      return totals;
+    };
+    const original=totalsByShipment(editOriginalItems),demand=totalsByShipment(items);
+    for(const [reference,quantity] of demand){
+      const previous=original.get(reference)||0;
+      const available=inventoryAvailableForShipment(reference)+previous;
+      if(quantity>previous&&quantity>available+0.001){notify('Quantity exceeds available inventory for '+reference+'. Available for this invoice: '+Math.max(0,available).toLocaleString('en-US')+' kg');return;}
+    }
+    const first=items[0],goods=items.reduce((sum,item)=>sum+item.total,0);
+    const paid=Number(row.dataset.actualPaid||0);
+    const payload={...d,reference:first.reference,product:first.product,lot:first.lot,quantity:items.reduce((sum,item)=>sum+item.quantity,0),unitPrice:first.unitPrice,
+      items,total:window.egyptInvoiceFinal(goods,d),invoiceBankId:d.invoiceBankId||'',invoiceBankDetails:d.invoiceBankDetails||'',paid};
+    try{await saveSale(payload)}catch(error){notify('Could not update invoice: '+error.message);return;}
     await loadSales();
     toggleModal(editSaleModal,false);
     renderInventory();syncSalesShipmentOptions();updateSalesReceivable();updateSalesVolume30();updateSalesInvoicedMonth();
@@ -3451,7 +3520,7 @@ db.auth.onAuthStateChange((event)=>{if(event==='SIGNED_OUT'){generation++;rows=[
 (()=>{for(const input of document.querySelectorAll('input[name="freight"]')){const f=input.form;if(!f)continue;const currency=f.elements.freightCurrency,rate=f.elements.freightRate;function recalc(){const needs=currency.value==='EGP'&&Number(input.value)>0;rate.disabled=!needs;rate.required=needs;rate.setCustomValidity(needs&&!(Number(rate.value)>0)?'Enter the EGP per USD exchange rate.':'');const q=Number(f.elements.quantity_ton?.value||f.elements.quantity?.value||0),p=Number(f.elements.unit_price?.value||f.elements.unitPrice?.value||0),total=f.elements.total_amount||f.elements.totalAmount,v=q*p+window.egyptFreightFormUSD(f);if(total)total.value=Number.isFinite(v)?v.toFixed(2):'';}for(const field of [input,currency,rate])field.addEventListener('input',recalc);currency.addEventListener('change',recalc);f.addEventListener('submit',e=>{recalc();if(!f.reportValidity()){e.preventDefault();e.stopImmediatePropagation()}},true);}}
 )();
 </script><script>
-(()=>{for(const id of ['saleForm','editSaleForm']){const f=document.getElementById(id),amount=f.elements.salesFreight,cur=f.elements.salesFreightCurrency,rate=f.elements.salesFreightRate;function validate(){const needs=cur.value==='USD'&&Number(amount.value)>0;rate.required=needs;rate.setCustomValidity(needs&&!(Number(rate.value)>0)?'Enter the EGP per USD exchange rate.':'');if(id==='editSaleForm'){const row=[...document.querySelectorAll('#salesTable tbody tr')].find(r=>r.dataset.invoice===f.elements.originalInvoice.value);let items=[];try{items=JSON.parse(row?.dataset.items||'[]')}catch{}const goods=items.length>1?items.reduce((n,i)=>n+Number(i.total||0),0):Number(f.elements.quantity.value||0)*Number(f.elements.unitPrice.value||0);const values=Object.fromEntries(new FormData(f)),total=window.egyptInvoiceFinal(goods,values);document.getElementById('editSaleTaxSubtotal').textContent=window.egyptInvoiceTax(goods,values).toFixed(2);document.getElementById('editSaleProductsSubtotal').textContent=goods.toFixed(2);document.getElementById('editSaleFreightSubtotal').textContent=window.egyptInvoiceFreightForm(f).toFixed(2);document.getElementById('editSalesFreightTotal').textContent=Number.isFinite(total)?total.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}):'Enter exchange rate';}}f.addEventListener('input',validate);f.addEventListener('change',validate);f.addEventListener('submit',e=>{validate();if(!f.reportValidity()){e.preventDefault();e.stopImmediatePropagation()}},true);}})();
+(()=>{for(const id of ['saleForm','editSaleForm']){const f=document.getElementById(id),amount=f.elements.salesFreight,cur=f.elements.salesFreightCurrency,rate=f.elements.salesFreightRate;function validate(){const needs=cur.value==='USD'&&Number(amount.value)>0;rate.required=needs;rate.setCustomValidity(needs&&!(Number(rate.value)>0)?'Enter the EGP per USD exchange rate.':'');if(id==='editSaleForm'){const row=[...document.querySelectorAll('#salesTable tbody tr')].find(r=>r.dataset.invoice===f.elements.originalInvoice.value);let items=[];try{items=JSON.parse(row?.dataset.items||'[]')}catch{}const editorItems=[...f.querySelectorAll('[data-edit-item]')];const goods=editorItems.length?editorItems.reduce((sum,item)=>sum+Math.round(Number(item.querySelector('[data-field="quantity"]').value||0)*Number(item.querySelector('[data-field="unitPrice"]').value||0)*100)/100,0):items.length>1?items.reduce((n,i)=>n+Number(i.total||0),0):Number(f.elements.quantity.value||0)*Number(f.elements.unitPrice.value||0);const values=Object.fromEntries(new FormData(f)),total=window.egyptInvoiceFinal(goods,values);document.getElementById('editSaleTaxSubtotal').textContent=window.egyptInvoiceTax(goods,values).toFixed(2);document.getElementById('editSaleProductsSubtotal').textContent=goods.toFixed(2);document.getElementById('editSaleFreightSubtotal').textContent=window.egyptInvoiceFreightForm(f).toFixed(2);document.getElementById('editSalesFreightTotal').textContent=Number.isFinite(total)?total.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}):'Enter exchange rate';}}f.addEventListener('input',validate);f.addEventListener('change',validate);f.addEventListener('submit',e=>{validate();if(!f.reportValidity()){e.preventDefault();e.stopImmediatePropagation()}},true);}})();
 </script>
 <script>(()=>{for(const id of ['saleForm','editSaleForm']){const f=document.getElementById(id),c=f.elements.salesFreightCurrency,r=f.elements.salesFreightRate;const update=()=>{const needs=c.value==='USD'&&Number(f.elements.salesFreight.value)>0;r.closest('.field').hidden=c.value!=='USD';r.disabled=!needs;r.required=needs;r.setCustomValidity(needs&&!(Number(r.value)>0)?'Enter the EGP per USD exchange rate.':'')};c.addEventListener('change',update);c.addEventListener('input',update);new MutationObserver(update).observe(f.closest('.modal'),{attributes:true,attributeFilter:['class']});update();}})();</script><script>(()=>{const modal=document.getElementById('editSaleModal'),f=document.getElementById('editSaleForm'),select=f.elements.invoiceBankId;let banks=[],generation=0;select.addEventListener('change',()=>{const bank=banks.find(b=>b.id===select.value);f.elements.invoiceBankDetails.value=bank?JSON.stringify({id:bank.id,...bank.data}):'';});new MutationObserver(async()=>{if(!modal.classList.contains('open'))return;const gen=++generation;const {data,error}=await window.aureaDb.from('egypt_bank_profiles').select('id,data').order('created_at');if(gen!==generation||!modal.classList.contains('open'))return;if(error){window.notify?.('Could not load banks: '+error.message);return;}banks=data||[];select.innerHTML='<option value="">No bank assigned</option>';for(const b of banks){const o=document.createElement('option');o.value=b.id;o.textContent=[b.data?.bank,b.data?.beneficiary_name].filter(Boolean).join(' · ');select.append(o);}select.value=f.dataset.invoiceBankId||'';f.elements.invoiceBankDetails.value=f.dataset.invoiceBankDetails||'';}).observe(modal,{attributes:true,attributeFilter:['class']});})();</script><script>(()=>{
 const db=window.aureaDb,host=document.getElementById('salesPaymentsPanel');if(!db||!host)return;
