@@ -666,7 +666,7 @@ window.egyptInvoiceFreightForm=f=>window.egyptInvoiceFreightEGP(Object.fromEntri
   </div><div class="dialog-foot"><button type="button" class="secondary close2">Cancel</button><button type="submit" class="primary">Save Shipment</button></div></form></div></div>
 <div class="modal" id="importFileModal" role="dialog" aria-modal="true"><div class="dialog wide"><div class="dialog-head"><div><h3>Add Shipment to Document Sequence</h3><span class="muted">Select a registered shipment and create its six-stage checklist</span></div><button class="close importClose" aria-label="Close">×</button></div><form id="importFileForm"><div class="form"><div class="form-section">Select existing shipment</div><div class="field full"><label>Registered shipment</label><select name="registeredShipment" id="registeredShipment" required><option value="">Select shipment...</option></select></div><div class="form-section">Import identification</div><div class="field"><label>Import File / Customs Certificate No.</label><input name="fileNo" required placeholder="e.g. 390279"></div><div class="field"><label>ACID Number</label><input name="acid" placeholder="19-digit ACID"></div><div class="field"><label>Importer name</label><input value="Aurea Commercial Investment Import & Export"></div><div class="field"><label>Declaration date</label><input type="date"></div><div class="field full"><label>Initial notes</label><textarea rows="3" placeholder="Add instructions or initial pending items"></textarea></div></div><div class="dialog-foot"><button type="button" class="secondary importCancel">Cancel</button><button type="submit" class="primary">Add Shipment & Create 6 Stages</button></div></form></div></div>
 <div class="modal" id="docDraftModal" role="dialog" aria-modal="true"><div class="dialog wide"><div class="dialog-head"><div><h3 id="draftTitle">Document Draft</h3><span class="muted">Fields may be completed from the attached B/L or Commercial Invoice</span></div><button class="close draftClose" aria-label="Close">×</button></div><form id="draftForm"><div class="form"><div class="upload-zone"><b>Source attachment</b><p class="muted">Attach B/L or invoice to consult while completing the draft.</p><input type="file" accept=".pdf,.jpg,.jpeg,.png"></div><div class="form-section">Parties and references</div><div class="field"><label>Importer</label><input name="importer" value="Aurea Commercial Investment Import & Export"></div><div class="field"><label>Exporter / Shipper</label><input name="exporter" value="Agricola Ferrari Ltda."></div><div class="field"><label>Customs Certificate / Declaration No.</label><input name="declaration" value="390279"></div><div class="field"><label>ACID Number</label><input name="acid" value="6480329301001410014"></div><div class="field"><label>Bill of Lading</label><input name="bl" value="HLCUPN4260171598"></div><div class="field"><label>Commercial Invoice</label><input name="invoice" placeholder="Invoice number and date"></div><div class="form-section">Shipment details</div><div class="field"><label>Product / Goods description</label><input name="goods" value="Sesame Seeds"></div><div class="field"><label>HS Code</label><input name="hs" value="120740"></div><div class="field"><label>Packages</label><input name="packages" value="3,240 bags"></div><div class="field"><label>Containers</label><input name="containers" value="6 × 20'"></div><div class="field"><label>Gross weight</label><input name="gross" value="162,324 kg"></div><div class="field"><label>Net weight</label><input name="net"></div><div class="field"><label>Country of origin</label><input name="origin" value="Brazil"></div><div class="field"><label>Port of loading</label><input name="loading"></div><div class="field"><label>Port of arrival</label><input name="arrival" value="Damietta"></div><div class="field"><label>Vessel / Voyage</label><input name="vessel"></div><div class="form-section">Commercial and customs values</div><div class="field"><label>Invoice currency</label><select name="currency"><option>USD</option><option>EUR</option><option>EGP</option></select></div><div class="field"><label>Invoice value</label><input name="invoiceValue" type="number" step="0.01"></div><div class="field"><label>Exchange rate (EGP)</label><input name="fx" type="number" step="0.0001" value="51.89"></div><div class="field"><label>CIF value (EGP)</label><input name="cif" type="number" step="0.01"></div><div class="field"><label>Customs duty (EGP)</label><input name="duty" type="number" step="0.01"></div><div class="field"><label>VAT / Other taxes (EGP)</label><input name="tax" type="number" step="0.01"></div><div class="field full"><label>Assessment notes</label><textarea name="notes" rows="3"></textarea></div></div><div class="dialog-foot"><button type="button" class="secondary draftCancel">Cancel</button><button type="button" class="secondary" id="saveDraft">Save Draft</button><button type="submit" class="primary">Generate Draft PDF</button></div></form></div></div>
-<div class="modal" id="saleModal" role="dialog" aria-modal="true"><div class="dialog"><div class="dialog-head"><div><h3>New Sales Invoice</h3><span class="muted">Buyer from Users / Profiles and lot from available inventory</span></div><button class="close saleClose" aria-label="Close">×</button></div><form id="saleForm"><div class="form"><div class="field full"><label>Buyer name</label><div style="display:flex;gap:7px"><select name="buyer" id="buyerSearch" required="" style="flex:1"><option value="">Select Company / Location...</option></select><button type="button" class="mini-btn" id="saleAddBuyer">+ User</button></div></div><div class="field"><label>Seller</label><input name="seller" id="saleSellerSearch" list="saleUserCompanies" autocomplete="off" required="" value="Aurea Commercial Egypt"><datalist id="saleUserCompanies"></datalist></div><div class="field"><label>Invoice number</label><input name="invoice" required="" value="INV-EG-0099"></div><div class="field"><label>Invoice date</label><input name="date" required="" type="date"></div><div class="field"><label>Payment status</label><input value="Pending — record payment after creating the invoice" readonly=""></div><div class="field"><label>Payment bank · Users / Bank</label><select name="invoiceBankId" id="saleInvoiceBank" required=""><option value="">Select payment bank…</option></select><input type="hidden" name="invoiceBankDetails" id="saleInvoiceBankDetails"></div><div class="field"><label>Due date</label><input name="dueDate" type="date"></div><div class="field full"><label>Shipment</label><select name="lot" id="saleLot" required=""><option value="">Select shipment with available inventory...</option></select></div><div class="field full" style="margin-top:8px">
+<div class="modal" id="saleModal" role="dialog" aria-modal="true"><div class="dialog"><div class="dialog-head"><div><h3>New Sales Invoice</h3><span class="muted">Buyer from Users / Profiles and lot from available inventory</span></div><button class="close saleClose" aria-label="Close">×</button></div><form id="saleForm"><div class="form"><div class="field full"><label>Buyer name</label><div style="display:flex;gap:7px"><select name="buyer" id="buyerSearch" required="" style="flex:1"><option value="">Select Company / Location...</option></select><button type="button" class="mini-btn" id="saleAddBuyer">+ User</button></div></div><div class="field"><label>Seller</label><input name="seller" id="saleSellerSearch" list="saleUserCompanies" autocomplete="off" required="" value="Aurea Commercial Egypt"><datalist id="saleUserCompanies"></datalist></div><div class="field"><label>Invoice number</label><input name="invoice" required="" value="INV-EG-0099"></div><div class="field"><label>Invoice date</label><input name="date" required="" type="date"></div><div class="field"><label>USD rate on invoice date (EGP per USD)</label><input name="saleUsdRate" type="number" min="0.000001" step="any" placeholder="Exchange rate on sale date"><small class="muted">Used to convert this sale to USD in DRE.</small></div><div class="field"><label>Payment status</label><input value="Pending — record payment after creating the invoice" readonly=""></div><div class="field"><label>Payment bank · Users / Bank</label><select name="invoiceBankId" id="saleInvoiceBank" required=""><option value="">Select payment bank…</option></select><input type="hidden" name="invoiceBankDetails" id="saleInvoiceBankDetails"></div><div class="field"><label>Due date</label><input name="dueDate" type="date"></div><div class="field full"><label>Shipment</label><select name="lot" id="saleLot" required=""><option value="">Select shipment with available inventory...</option></select></div><div class="field full" style="margin-top:8px">
   <div style="border:1px solid var(--line);border-radius:12px;padding:16px;background:var(--soft,#f8fafc)">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
       <div><b style="font-size:15px">Sales Item</b><div class="muted" style="font-size:12px;margin-top:3px">Product, quantity and sales price</div></div>
@@ -709,7 +709,7 @@ window.egyptInvoiceFreightForm=f=>window.egyptInvoiceFreightEGP(Object.fromEntri
         <div class="field"><label>Loading Status</label><select name="truckStatus"><option value="To be loaded">To be loaded</option><option value="Loaded">Loaded</option></select></div>
         <div class="field"><label>Payment status</label><input name="paymentStatus" readonly=""><small class="muted">Status follows registered payments.</small></div>
         <div class="field"><label>Due date</label><input name="dueDate" type="date"></div>
-        <div class="field"><label>Seller</label><input name="seller"></div>
+        <div class="field"><label>Seller</label><input name="seller"></div><div class="field"><label>USD rate on invoice date (EGP per USD)</label><input name="saleUsdRate" type="number" min="0.000001" step="any" placeholder="Exchange rate on sale date"><small class="muted">Used to convert this sale to USD in DRE.</small></div>
       </div>
       <div class="dialog-foot"><button type="button" class="secondary editSaleCancel">Cancel</button><button type="submit" class="primary">Save Changes</button></div>
     </form>
@@ -1308,7 +1308,7 @@ document.getElementById('editSaleAddBuyer')?.addEventListener('click',addBuyerFr
     const total=Number(d.total||0),reconciled=typeof d.bankReconciled==='boolean'?d.bankReconciled:(window.egyptReconciledKeys?.has('sales:'+d.invoice)||false),paid=reconciled?Math.max(total,Number(d.paid||0)):Number(d.paid||0),qty=Number(d.quantity||0);
     const hasBankReconciliation=d.hasBankReconciliation??reconciled;
     const tr=document.createElement('tr');if(hasBankReconciliation)tr.classList.add('invoice-reconciled-paid');
-    Object.assign(tr.dataset,{reconciled:String(reconciled),hasBankReconciliation:String(hasBankReconciliation),actualPaid:String(d.paid||0),salesTaxRate:String(d.salesTaxRate||0),salesTaxMode:d.salesTaxMode||'add',salesFreight:String(d.salesFreight||0),salesFreightCurrency:d.salesFreightCurrency||'EGP',salesFreightRate:String(d.salesFreightRate||0),items:JSON.stringify(d.items||[]),invoice:d.invoice,date:d.date||'',buyer:d.buyer||'',product:d.product||'',lot:d.lot||'',reference:d.reference||'',quantity:String(qty),unitPrice:String(d.unitPrice||0),plateTruck:d.plateTruck||'',truckStatus:d.truckStatus||'To be loaded',total:String(total),paid:String(paid),seller:d.seller||'',invoiceBankId:d.invoiceBankId||'',invoiceBankDetails:d.invoiceBankDetails||'',dueDate:d.dueDate||''});
+    Object.assign(tr.dataset,{reconciled:String(reconciled),hasBankReconciliation:String(hasBankReconciliation),actualPaid:String(d.paid||0),saleUsdRate:d.saleUsdRate||'',salesTaxRate:String(d.salesTaxRate||0),salesTaxMode:d.salesTaxMode||'add',salesFreight:String(d.salesFreight||0),salesFreightCurrency:d.salesFreightCurrency||'EGP',salesFreightRate:String(d.salesFreightRate||0),items:JSON.stringify(d.items||[]),invoice:d.invoice,date:d.date||'',buyer:d.buyer||'',product:d.product||'',lot:d.lot||'',reference:d.reference||'',quantity:String(qty),unitPrice:String(d.unitPrice||0),plateTruck:d.plateTruck||'',truckStatus:d.truckStatus||'To be loaded',total:String(total),paid:String(paid),seller:d.seller||'',invoiceBankId:d.invoiceBankId||'',invoiceBankDetails:d.invoiceBankDetails||'',dueDate:d.dueDate||''});
     const balance=Math.max(0,total-paid);
     tr.innerHTML=`<td><input type="checkbox" class="sales-select" aria-label="Select ${safe(d.invoice)}"></td><td><span class="ref-link">${safe(d.invoice)}</span></td><td>${safe(d.date||'')}</td><td>${safe(d.buyer||'')}</td><td>${safe(d.product||'')} · ${safe(d.lot||'—')}<br><span class="muted">${safe(d.reference||'')}</span></td><td>${qty.toLocaleString('en-US')} kg</td><td>${salesUnitPrices(d)}</td><td class="invoice-total">EGP ${money(total)}</td><td><span class="status payment-status${paid<total?' amber':''}">${paid>=total&&total>0?'Paid':paid>0?'Partially Paid':'Pending'}</span></td><td class="current-balance">EGP ${money(balance)}</td><td><button class="mini-btn edit-sale" type="button">Edit</button> <button class="mini-btn payment-btn">Payment</button> <button class="mini-btn pdf-btn">Invoice PDF</button> <button class="mini-btn loaded-order-pdf" type="button">Loading Authorization PDF</button> <button class="mini-btn delete-sale" type="button">Delete</button></td>`;
     return tr;
@@ -1494,7 +1494,7 @@ document.getElementById('editSaleAddBuyer')?.addEventListener('click',addBuyerFr
     if(f.elements.plateTruck)f.elements.plateTruck.value=row.dataset.plateTruck||'';
     if(f.elements.truckStatus)f.elements.truckStatus.value=row.dataset.truckStatus||'To be loaded';
     f.elements.dueDate.value=row.dataset.dueDate||'';
-    f.elements.seller.value=row.dataset.seller||'';
+    f.elements.seller.value=row.dataset.seller||'';f.elements.saleUsdRate.value=row.dataset.saleUsdRate||'';
     f.elements.paymentStatus.value=Number(row.dataset.paid||0)>=Number(row.dataset.total||0)?'Paid':Number(row.dataset.paid||0)>0?'Partially Paid':'Pending';
     document.getElementById('editSaleLabel').textContent=row.dataset.invoice||'';
     updateEditItems();
@@ -3863,21 +3863,21 @@ for(const d of linked){
 }
 for(const p of purchase){group('USD').supplier+=num(p.amount_usd);if(num(p.converted_egp)>0)group('EGP').supplier+=num(p.converted_egp);else if(num(p.amount_usd)>0)group('EGP').missingRate=true;}
 const egpSales=saleRows.filter(sale=>sale.currency==='EGP');
-const convertedPurchases=purchase.filter(payment=>num(payment.amount_usd)>0&&num(payment.converted_egp)>0);
-const purchaseUsd=convertedPurchases.reduce((sum,payment)=>sum+num(payment.amount_usd),0);
-const purchaseEgp=convertedPurchases.reduce((sum,payment)=>sum+num(payment.converted_egp),0);
-const salesFx=purchaseUsd>0?purchaseEgp/purchaseUsd:0;
+const convertedSales=egpSales.filter(sale=>Number(sale.invoice.data?.saleUsdRate)>0&&Number.isFinite(Number(sale.invoice.data.saleUsdRate)));
+const missingSales=egpSales.filter(sale=>!convertedSales.includes(sale));
+const totalSalesUsd=convertedSales.reduce((sum,sale)=>sum+sale.amount/Number(sale.invoice.data.saleUsdRate),0);
+const convertedSalesEgp=convertedSales.reduce((sum,sale)=>sum+sale.amount,0);
+const salesFx=totalSalesUsd>0?convertedSalesEgp/totalSalesUsd:0;
 const egpSoldTonnes=egpSales.every(sale=>sale.soldTonnes!==null)
  ?egpSales.reduce((sum,sale)=>sum+sale.soldTonnes,0):0;
-function egpSalesInUsd(total){
+function egpSalesInUsd(){
  if(!egpSales.length)return '';
- if(!salesFx)return '<p>Venda em USD: câmbio da compra indisponível.</p>';
- const totalUsd=total/salesFx;
- const rate=salesFx.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:6});
- return '<p>Preço médio de venda: <b>'+(egpSoldTonnes>0?'USD '+money(totalUsd/egpSoldTonnes)+' / MT':'—')+
-  '</b> · Venda total equivalente: <b>USD '+money(totalUsd)+
-  '</b> · Câmbio médio da compra: <b>'+rate+' EGP por USD</b> ('+convertedPurchases.length+
-  ' de '+purchase.filter(payment=>num(payment.amount_usd)>0).length+' pagamentos em USD com conversão)</p>';
+ if(missingSales.length)return '<p>Venda em USD pendente: informar câmbio da data da venda nas invoices <b>'+
+  missingSales.map(sale=>esc(sale.invoice.invoice_number)).join(' · ')+'</b>.</p>';
+ const rate=salesFx?salesFx.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:6}):'—';
+ return '<p>Preço médio de venda: <b>'+(egpSoldTonnes>0?'USD '+money(totalSalesUsd/egpSoldTonnes)+' / MT':'—')+
+  '</b> · Venda total equivalente: <b>USD '+money(totalSalesUsd)+
+  '</b> · Câmbio médio das vendas: <b>'+rate+' EGP por USD</b></p>';
 }
 const purchaseTonnes=num(shipmentWeights.get(ref))/1000;
 function supplierPaymentSummary(currency,total){
@@ -3950,7 +3950,9 @@ const saleDetails=saleRows.map(({invoice,amount,currency,soldWeight,unitPrices})
  const reconciled=reconciledInvoiceAmount(invoice,invoicePayments,matched);
  return '<tr>'+[invoice.invoice_number,invoice.data?.date,invoice.buyer||invoice.data?.buyer,currency,soldWeight].map(cell).join('')+
   '<td>'+unitPrices.map(esc).join('<br>')+'</td>'+
-  [money(invoice.amount),reconciled===null?'—':money(reconciled),money(amount)].map(cell).join('')+
+  [money(invoice.amount),reconciled===null?'—':money(reconciled),money(amount),
+   invoice.data?.saleUsdRate||'—',currency==='USD'?money(amount):
+    currency==='EGP'&&Number(invoice.data?.saleUsdRate)>0?money(amount/Number(invoice.data.saleUsdRate)):'—'].map(cell).join('')+
   statementCell(reconciliationRows(keys,matched),'credit')+'</tr>';
 }).join('');
 const purchaseDetails=purchase.map(payment=>{
@@ -3963,8 +3965,8 @@ const purchaseDetails=purchase.map(payment=>{
 const table=(headers,rows,layout)=>'<div class="card table-card"><table class="data-table dre-detail-'+layout+'"><thead><tr>'+headers.map(h=>'<th>'+esc(h)+'</th>').join('')+'</tr></thead><tbody>'+rows+'</tbody></table></div>';
 $('dreReport').innerHTML=overview()+'<h2>DRE · Shipment '+esc(ref)+'</h2><p>'+selected.length+' Sales Invoice(s) linked by Shipment: '+selected.map(s=>esc(s.invoice_number)).join(' · ')+'</p>'+'<div class="dre-currency-summaries">'+summary+'</div>'+
  '<h3>Sales invoices &amp; bank reconciliation</h3>'+
- table(['Invoice','Invoice date','Buyer','Currency','Sold weight for PO (MT)','Unit price / MT','Invoice total','Reconciled amount','Sales allocated to PO','Bank statement · Date / Bank / Reference / Credit'],
-  saleDetails||empty(10,'No sales invoices linked to this shipment.'),'sales')+
+ table(['Invoice','Invoice date','Buyer','Currency','Sold weight for PO (MT)','Unit price / MT','Invoice total','Reconciled amount','Sales allocated to PO','Sale date USD rate (EGP / USD)','Sales USD for PO','Bank statement · Date / Bank / Reference / Credit'],
+  saleDetails||empty(12,'No sales invoices linked to this shipment.'),'sales')+
  '<h3>Paid to supplier (−) &amp; bank reconciliation</h3><p>Total pago ao fornecedor: <b>USD '+money(purchase.reduce((n,p)=>n+num(p.amount_usd),0))+'</b></p>'+
  table(['Payment date','Payment bank','Payment reference','Paid USD','Exchange rate (EGP per USD)','Converted EGP','Bank statement · Date / Bank / Reference / Debit'],
   purchaseDetails||empty(7,'No purchase payments registered.'),'payments')+
@@ -4014,7 +4016,7 @@ $('drePdf').onclick=()=>{
  .dre-detail-sales th:last-child,.dre-detail-payments th:last-child{width:32%}
  .dre-detail-sales th:nth-child(4),.dre-detail-expenses th:nth-child(5){width:5%}
  .dre-detail-expenses th:nth-child(4){width:24%}
- .dre-detail-sales :is(th,td):nth-child(n+5):nth-child(-n+9),
+ .dre-detail-sales :is(th,td):nth-child(n+5):nth-child(-n+11),
  .dre-detail-payments :is(th,td):nth-child(n+4):nth-child(-n+6),
  .dre-detail-expenses :is(th,td):nth-child(n+6):nth-child(-n+9){text-align:right;font-variant-numeric:tabular-nums}
  @media print{.dre-order-print .dre-currency-summaries{break-inside:avoid}}
