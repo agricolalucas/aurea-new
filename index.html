@@ -2362,14 +2362,54 @@ const ws=X.utils.aoa_to_sheet(values);ws['!cols']=[{wch:13},{wch:22},{wch:28},{w
 const filters=[['Filter','Value'],...['expenseFilterService','expenseFilterCurrency','expenseFilterSupplier','expenseFilterShipment','expenseFilterCategory','expenseFilterStatus','expenseFilterFrom','expenseFilterTo'].map(id=>[document.getElementById(id)?.closest('.field')?.querySelector('label')?.textContent||id,document.getElementById(id)?.value||'All'])];X.utils.book_append_sheet(book,X.utils.aoa_to_sheet(filters),'Applied filters');X.writeFile(book,'AUREA_EGYPT_Expenses_Filtered.xlsx');
 }catch(e){notify('Could not export expenses: '+e.message);}finally{button.disabled=false;}
 });
- document.getElementById('expensePdfBtn')?.addEventListener('click',()=>{
+ document.getElementById('expensePdfBtn')?.addEventListener('click',async()=>{
   const rows=filteredExpenses(),w=window.open('','_blank');if(!w){notify('Allow pop-ups to generate PDF.');return}
+  w.document.body.textContent='Loading reconciled payment details…';
+  async function reportRows(table){
+    const rows=[];
+    for(let offset=0;;offset+=100){
+      const query=table==='egypt_bank_reconciliations'
+       ?db.rpc('egypt_reconciliation_list',{p_source:table,p_offset:offset})
+       :db.from(table).select(table==='egypt_bank_profiles'?'id,data':'id,reconciliation_id,system_key,statement_id').order('id').range(offset,offset+99);
+      const {data,error}=await query;
+      if(error)throw error;
+      rows.push(...data);
+      if(data.length<100)return rows;
+    }
+  }
+  let links,history,banks;
+  try{[links,history,banks]=await Promise.all(['egypt_bank_reconciliation_links','egypt_bank_reconciliations','egypt_bank_profiles'].map(reportRows));}
+  catch(error){w.document.body.textContent='Could not load reconciled payments: '+error.message;return;}
+  const detailsByExpense=new Map();
+  const bankNames=new Map(banks.map(bank=>[bank.id,bank.data?.bank]));
+  for(const expense of rows){
+    const key='expense:'+expense.id;
+    const expenseLinks=links.filter(link=>link.system_key===key);
+    const ids=new Set(expenseLinks.map(link=>link.reconciliation_id));
+    const matched=history.filter(entry=>ids.has(entry.id)||(!(links.some(link=>link.reconciliation_id===entry.id&&link.system_key))&&(entry.data?.system||[]).some(item=>item.key===key)));
+    detailsByExpense.set(String(expense.id),matched.map(entry=>{
+      const system=(entry.data?.system||[]).find(item=>item.key===key);
+      const groupKeys=new Set(links.filter(link=>link.reconciliation_id===entry.id&&link.system_key).map(link=>link.system_key));
+      const shared=groupKeys.size>1||(entry.data?.system||[]).length>1;
+      const amount=system?.amount??system?.debit;
+      const heading='<b>Reconciled'+(amount!=null?' · '+esc(entry.currency||expense.currency||'EGP')+' '+Number(amount).toFixed(2):'')+'</b>';
+      const bank=(entry.data?.bank||[]).map(payment=>{
+        const bankName=bankNames.get(entry.bank_id)||payment.bank||'';
+        return [payment.date,bankName,payment.reference,payment.description,
+         payment.credit!=null&&Number(payment.credit)!==0?'Credit '+(entry.currency||'')+' '+Number(payment.credit).toFixed(2):'',
+         payment.debit!=null&&Number(payment.debit)!==0?'Debit '+(entry.currency||'')+' '+Number(payment.debit).toFixed(2):'']
+         .filter(Boolean).map(esc).join(' · ');
+      }).join('<br>');
+      return '<div class="reconciled-payment">'+heading+'<br>'+(bank||'Bank statement details unavailable')+
+        (shared?'<br><small>Shared bank transaction across linked entries.</small>':'')+'</div>';
+    }).join('')||'Not reconciled');
+  }
   const category=document.getElementById('expenseFilterCategory')?.value||'All categories';
   const sum=t=>{const a={};rows.forEach(x=>{const c=x.currency||'EGP',am=+x.amount||0,p=+x.paid||0,n=t==='total'?am:t==='paid'?p:Math.max(0,am-p);a[c]=(a[c]||0)+n});return Object.entries(a).map(([c,n])=>`${c} ${n.toFixed(2)}`).join(' | ')||'—'};
   w.document.write(`<!doctype html><html><head><title>Expenses Report</title><style>
   @page{size:A4 landscape;margin:8mm}
   *{box-sizing:border-box}
-  body{font:10px/1.25 Arial,sans-serif;margin:0;color:#17313b;print-color-adjust:exact}
+  body{font:9px/1.25 Arial,sans-serif;margin:0;color:#17313b;print-color-adjust:exact}
   h1{font-size:18px;margin:0 0 4px}
   .category-filter{margin:0 0 6px;color:#425d69}
   .summary{display:flex;gap:5px;margin:0 0 7px}
@@ -2381,16 +2421,17 @@ const filters=[['Filter','Value'],...['expenseFilterService','expenseFilterCurre
   thead{display:table-header-group}
   tbody tr:nth-child(even){background:#f4f8f7}
   tr{break-inside:avoid}
+  .reconciled-payment+.reconciled-payment{border-top:1px solid #ccd9d6;margin-top:3px;padding-top:3px}
   .financial-column{white-space:nowrap}
   .amount-column{text-align:right;font-variant-numeric:tabular-nums}
   .expense-category{color:#173d35;font-weight:600}
   .expense-status{font-weight:700;color:#176b56}
   .expense-status.payable{color:#8b4d07}
   </style></head><body><h1>Expenses / Financial Cash Control</h1><p class="category-filter"><b>Category:</b> ${esc(category)}</p><div class="summary"><div class="box"><b>Total Expenses</b><br>${sum('total')}</div><div class="box"><b>Paid</b><br>${sum('paid')}</div><div class="box"><b>Payable</b><br>${sum('payable')}</div></div><table><colgroup>
-  <col style="width:6%"><col style="width:7%"><col style="width:12%"><col style="width:19.5%">
-  <col style="width:8%"><col style="width:6%"><col style="width:5%"><col style="width:8%">
-  <col style="width:5%"><col style="width:6.5%"><col style="width:6.5%"><col style="width:6.5%"><col style="width:4%">
-  </colgroup><thead><tr><th>Date</th><th>Shipment</th><th scope="col" class="expense-category">Category</th><th>Description</th><th>Supplier</th><th>Invoice / NF</th><th>Invoice File</th><th>Bank Payment</th><th class="financial-column">Currency</th><th class="financial-column amount-column">Amount</th><th class="financial-column amount-column">Paid</th><th class="financial-column amount-column">Balance</th><th class="financial-column">Status</th></tr></thead><tbody>${rows.map(x=>{const b=Math.max(0,(+x.amount||0)-(+x.paid||0));return `<tr><td>${esc(x.date||'')}</td><td>${esc(x.shipment||'—')}</td><td class="expense-category">${esc(x.category||"—")}</td><td>${esc(x.description||'')}</td><td>${esc(x.supplier||'—')}</td><td>${esc(x.invoice_number||'—')}</td><td>${esc(x.invoice_file||'—')}</td><td>${esc(x.bank_payment||'—')}</td><td class="financial-column">${esc(x.currency||'EGP')}</td><td class="financial-column amount-column">${(+x.amount||0).toFixed(2)}</td><td class="financial-column amount-column">${(+x.paid||0).toFixed(2)}</td><td class="financial-column amount-column">${b.toFixed(2)}</td><td class="financial-column expense-status${b>0?' payable':''}">${b>0?'Payable':'Paid'}</td></tr>`}).join('')}</tbody></table><script>window.onload=()=>window.print()<\/script>
+  <col style="width:5%"><col style="width:5%"><col style="width:8%"><col style="width:12%">
+  <col style="width:7%"><col style="width:4%"><col style="width:4%"><col style="width:7%">
+  <col style="width:5%"><col style="width:6%"><col style="width:6%"><col style="width:6%"><col style="width:4%"><col style="width:21%">
+  </colgroup><thead><tr><th>Date</th><th>Shipment</th><th scope="col" class="expense-category">Category</th><th>Description</th><th>Supplier</th><th>Invoice / NF</th><th>Invoice File</th><th>Bank Payment</th><th class="financial-column">Currency</th><th class="financial-column amount-column">Amount</th><th class="financial-column amount-column">Paid</th><th class="financial-column amount-column">Balance</th><th class="financial-column">Status</th><th>Reconciled payment · Bank statement</th></tr></thead><tbody>${rows.map(x=>{const b=Math.max(0,(+x.amount||0)-(+x.paid||0));return `<tr><td>${esc(x.date||'')}</td><td>${esc(x.shipment||'—')}</td><td class="expense-category">${esc(x.category||"—")}</td><td>${esc(x.description||'')}</td><td>${esc(x.supplier||'—')}</td><td>${esc(x.invoice_number||'—')}</td><td>${esc(x.invoice_file||'—')}</td><td>${esc(x.bank_payment||'—')}</td><td class="financial-column">${esc(x.currency||'EGP')}</td><td class="financial-column amount-column">${(+x.amount||0).toFixed(2)}</td><td class="financial-column amount-column">${(+x.paid||0).toFixed(2)}</td><td class="financial-column amount-column">${b.toFixed(2)}</td><td class="financial-column expense-status${b>0?' payable':''}">${b>0?'Payable':'Paid'}</td><td>${detailsByExpense.get(String(x.id))||'Not reconciled'}</td></tr>`}).join('')}</tbody></table><script>window.onload=()=>window.print()<\/script>
 
 
 </body></html>`);w.document.close();
