@@ -2390,7 +2390,17 @@ const filters=[['Filter','Value'],...['expenseFilterService','expenseFilterCurre
     detailsByExpense.set(String(expense.id),matched.map(entry=>{
       const system=(entry.data?.system||[]).find(item=>item.key===key);
       const groupKeys=new Set(links.filter(link=>link.reconciliation_id===entry.id&&link.system_key).map(link=>link.system_key));
-      const shared=groupKeys.size>1||(entry.data?.system||[]).length>1;
+      const snapshotItems=entry.data?.system||[];
+      const activeItems=groupKeys.size?[...groupKeys].map(systemKey=>snapshotItems.find(item=>item.key===systemKey)||{key:systemKey}):snapshotItems;
+      const shared=activeItems.length>1;
+      const jointItems=shared?activeItems.map(item=>{
+        const savedExpense=get().find(expense=>'expense:'+expense.id===item.key);
+        const value=item.amount??(Number(item.credit||0)+Number(item.debit||0));
+        const reference=savedExpense?.invoice_number||item.reference||
+          (String(item.key||'').startsWith('sales:')?String(item.key).slice(6):item.key)||'—';
+        const description=savedExpense?.description||item.description||'';
+        return [reference,description,value!=null?(entry.currency||'EGP')+' '+Number(value).toFixed(2):''].filter(Boolean).map(esc).join(' · ');
+      }).join('<br>'):'';
       const amount=system?.amount??system?.debit;
       const heading='<b>Reconciled'+(amount!=null?' · '+esc(entry.currency||expense.currency||'EGP')+' '+Number(amount).toFixed(2):'')+'</b>';
       const bank=(entry.data?.bank||[]).map(payment=>{
@@ -2401,7 +2411,7 @@ const filters=[['Filter','Value'],...['expenseFilterService','expenseFilterCurre
          .filter(Boolean).map(esc).join(' · ');
       }).join('<br>');
       return '<div class="reconciled-payment">'+heading+'<br>'+(bank||'Bank statement details unavailable')+
-        (shared?'<br><small>Shared bank transaction across linked entries.</small>':'')+'</div>';
+        (shared?'<br><b>Reconciled together · '+activeItems.length+' entries</b><br>'+jointItems:'')+'</div>';
     }).join('')||'Not reconciled');
   }
   const category=document.getElementById('expenseFilterCategory')?.value||'All categories';
