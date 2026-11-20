@@ -2420,6 +2420,13 @@ const filters=[['Filter','Value'],...['expenseFilterService','expenseFilterCurre
     const itemAmount=item=>item.amount??(Number(item.credit||0)+Number(item.debit||0));
     const systemTotal=items.reduce((n,item)=>n+Number(itemAmount(item)||0),0);
     const credit=payments.reduce((n,p)=>n+Number(p.credit||0),0),debit=payments.reduce((n,p)=>n+Number(p.debit||0),0);
+    const adjustment=entry.data?.adjustment;
+    const systemNet=items.reduce((n,item)=>n+Number(item.debit??item.amount??0)-Number(item.credit||0),0);
+    const adjustmentNet=Number(adjustment?.debit||0)-Number(adjustment?.credit||0);
+    const reconciledNet=systemNet+adjustmentNet;
+    const difference=(debit-credit)-reconciledNet;
+    const adjustmentRows=adjustment?'<tr class="adjustment"><td>Adjustment · '+esc(adjustment.date||'—')+'</td><td>'+esc(adjustment.description||adjustment.reference||'Reconciliation adjustment')+' · '+(Number(adjustment.debit||0)?'Debit':'Credit')+'</td><td class="num">'+number(Number(adjustment.debit||0)+Number(adjustment.credit||0))+'</td></tr>':'';
+    const reconciledRows='<tr class="total"><td colspan="2">TOTAL RECONCILED (DEBIT − CREDIT) · '+esc(currency)+'</td><td class="num">'+number(reconciledNet)+'</td></tr><tr><td colspan="2">Difference vs bank statement · '+esc(currency)+'</td><td class="num">'+number(difference)+'</td></tr>';
     const invoiceList=items.map(item=>{
       const saved=allExpenses.get(item.key);
       return '<tr><td>'+esc(saved?.invoice_number||item.reference||item.key||'—')+
@@ -2432,7 +2439,7 @@ const filters=[['Filter','Value'],...['expenseFilterService','expenseFilterCurre
     return '<section class="reconciliation"><h3>Reconciliation #'+(index+1)+' · '+esc(currency)+'</h3>'+
       '<div class="columns"><div><table><thead><tr><th>Invoice / Entry</th><th>Supplier / Description</th><th class="num">Amount</th></tr></thead><tbody>'+
       invoiceList+'</tbody><tfoot><tr class="total"><td colspan="2">TOTAL INVOICES / ENTRIES · '+esc(currency)+'</td><td class="num">'+number(systemTotal)+
-      '</td></tr></tfoot></table></div><div><table><thead><tr><th>Date</th><th>Bank</th><th>Statement reference / Description</th><th class="num">Credit</th><th class="num">Debit</th></tr></thead><tbody>'+
+      '</td></tr>'+adjustmentRows+reconciledRows+'</tfoot></table></div><div><table><thead><tr><th>Date</th><th>Bank</th><th>Statement reference / Description</th><th class="num">Credit</th><th class="num">Debit</th></tr></thead><tbody>'+
       (bankList||'<tr><td colspan="5">Bank statement details unavailable</td></tr>')+
       '</tbody><tfoot><tr class="total"><td colspan="3">TOTAL BANK STATEMENT · '+esc(currency)+'</td><td class="num">'+number(credit)+'</td><td class="num">'+number(debit)+
       '</td></tr></tfoot></table></div></div></section>';
