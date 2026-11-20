@@ -2380,71 +2380,78 @@ const filters=[['Filter','Value'],...['expenseFilterService','expenseFilterCurre
   let links,history,banks;
   try{[links,history,banks]=await Promise.all(['egypt_bank_reconciliation_links','egypt_bank_reconciliations','egypt_bank_profiles'].map(reportRows));}
   catch(error){w.document.body.textContent='Could not load reconciled payments: '+error.message;return;}
-  const detailsByExpense=new Map();
+
   const bankNames=new Map(banks.map(bank=>[bank.id,bank.data?.bank]));
-  for(const expense of rows){
-    const key='expense:'+expense.id;
-    const expenseLinks=links.filter(link=>link.system_key===key);
-    const ids=new Set(expenseLinks.map(link=>link.reconciliation_id));
-    const matched=history.filter(entry=>ids.has(entry.id)||(!(links.some(link=>link.reconciliation_id===entry.id&&link.system_key))&&(entry.data?.system||[]).some(item=>item.key===key)));
-    detailsByExpense.set(String(expense.id),matched.map(entry=>{
-      const system=(entry.data?.system||[]).find(item=>item.key===key);
-      const groupKeys=new Set(links.filter(link=>link.reconciliation_id===entry.id&&link.system_key).map(link=>link.system_key));
-      const snapshotItems=entry.data?.system||[];
-      const activeItems=groupKeys.size?[...groupKeys].map(systemKey=>snapshotItems.find(item=>item.key===systemKey)||{key:systemKey}):snapshotItems;
-      const shared=activeItems.length>1;
-      const jointItems=shared?activeItems.map(item=>{
-        const savedExpense=get().find(expense=>'expense:'+expense.id===item.key);
-        const value=item.amount??(Number(item.credit||0)+Number(item.debit||0));
-        const reference=savedExpense?.invoice_number||item.reference||
-          (String(item.key||'').startsWith('sales:')?String(item.key).slice(6):item.key)||'—';
-        const description=savedExpense?.description||item.description||'';
-        return [reference,description,value!=null?(entry.currency||'EGP')+' '+Number(value).toFixed(2):''].filter(Boolean).map(esc).join(' · ');
-      }).join('<br>'):'';
-      const amount=system?.amount??system?.debit;
-      const heading='<b>Reconciled'+(amount!=null?' · '+esc(entry.currency||expense.currency||'EGP')+' '+Number(amount).toFixed(2):'')+'</b>';
-      const bank=(entry.data?.bank||[]).map(payment=>{
-        const bankName=bankNames.get(entry.bank_id)||payment.bank||'';
-        return [payment.date,bankName,payment.reference,payment.description,
-         payment.credit!=null&&Number(payment.credit)!==0?'Credit '+(entry.currency||'')+' '+Number(payment.credit).toFixed(2):'',
-         payment.debit!=null&&Number(payment.debit)!==0?'Debit '+(entry.currency||'')+' '+Number(payment.debit).toFixed(2):'']
-         .filter(Boolean).map(esc).join(' · ');
-      }).join('<br>');
-      return '<div class="reconciled-payment">'+heading+'<br>'+(bank||'Bank statement details unavailable')+
-        (shared?'<br><b>Reconciled together · '+activeItems.length+' entries</b><br>'+jointItems:'')+'</div>';
-    }).join('')||'Not reconciled');
-  }
+  const visibleKeys=new Set(rows.map(x=>'expense:'+x.id));
+  const allExpenses=new Map(get().map(x=>['expense:'+x.id,x]));
+  const activeItems=entry=>{
+    const keys=[...new Set(links.filter(link=>link.reconciliation_id===entry.id&&link.system_key).map(link=>link.system_key))];
+    const snapshot=entry.data?.system||[];
+    return keys.length?keys.map(key=>snapshot.find(item=>item.key===key)||{key}):snapshot;
+  };
+  const groups=history.filter(entry=>activeItems(entry).some(item=>visibleKeys.has(item.key)));
+  const number=value=>Number(value||0).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+  const totals=new Map();
+  rows.forEach(x=>{
+    const c=x.currency||'EGP',t=totals.get(c)||{amount:0,paid:0,balance:0};
+    t.amount+=Number(x.amount||0);t.paid+=Number(x.paid||0);t.balance+=Math.max(0,Number(x.amount||0)-Number(x.paid||0));totals.set(c,t);
+  });
+  const groupNumber=new Map();
+  groups.forEach((entry,i)=>activeItems(entry).forEach(item=>{
+    if(!groupNumber.has(item.key))groupNumber.set(item.key,[]);
+    groupNumber.get(item.key).push(i+1);
+  }));
+  const invoiceRows=rows.map(x=>{
+    const balance=Math.max(0,Number(x.amount||0)-Number(x.paid||0));
+    return '<tr>'+[x.date||'—',x.shipment||'—',x.invoice_number||'—',x.supplier||'—',x.category||'—',x.description||'—',x.currency||'EGP']
+      .map(v=>'<td>'+esc(v)+'</td>').join('')+
+      [x.amount,x.paid,balance].map(v=>'<td class="num">'+number(v)+'</td>').join('')+
+      '<td>'+esc(groupNumber.has('expense:'+x.id)?groupNumber.get('expense:'+x.id).map(n=>'#'+n).join(', '):'Not reconciled')+'</td></tr>';
+  }).join('');
+  const totalRows=[...totals].map(([currency,t])=>'<tr class="total"><td colspan="6">TOTAL · '+esc(currency)+'</td><td>'+esc(currency)+'</td>'+
+    [t.amount,t.paid,t.balance].map(v=>'<td class="num">'+number(v)+'</td>').join('')+'<td></td></tr>').join('');
+  const reconciliationRows=groups.map((entry,index)=>{
+    const currency=entry.currency||'EGP',items=activeItems(entry);
+    const seen=new Set();
+    const payments=(entry.data?.bank||[]).filter(p=>{
+      const key=p.id||JSON.stringify([p.date,p.reference,p.description,p.credit,p.debit]);
+      if(seen.has(key))return false;seen.add(key);return true;
+    });
+    const itemAmount=item=>item.amount??(Number(item.credit||0)+Number(item.debit||0));
+    const systemTotal=items.reduce((n,item)=>n+Number(itemAmount(item)||0),0);
+    const credit=payments.reduce((n,p)=>n+Number(p.credit||0),0),debit=payments.reduce((n,p)=>n+Number(p.debit||0),0);
+    const invoiceList=items.map(item=>{
+      const saved=allExpenses.get(item.key);
+      return '<tr><td>'+esc(saved?.invoice_number||item.reference||item.key||'—')+
+        (!visibleKeys.has(item.key)?' <span class="muted">(outside filter)</span>':'')+'</td><td>'+
+        esc(saved?.supplier||item.description||'—')+'</td><td class="num">'+number(itemAmount(item))+'</td></tr>';
+    }).join('');
+    const bankList=payments.map(p=>'<tr><td>'+esc(p.date||'—')+'</td><td>'+esc(bankNames.get(entry.bank_id)||p.bank||'—')+
+      '</td><td>'+esc([p.reference,p.description].filter(Boolean).join(' · ')||'—')+'</td><td class="num">'+number(p.credit)+
+      '</td><td class="num">'+number(p.debit)+'</td></tr>').join('');
+    return '<section class="reconciliation"><h3>Reconciliation #'+(index+1)+' · '+esc(currency)+'</h3>'+
+      '<div class="columns"><div><table><thead><tr><th>Invoice / Entry</th><th>Supplier / Description</th><th class="num">Amount</th></tr></thead><tbody>'+
+      invoiceList+'</tbody><tfoot><tr class="total"><td colspan="2">TOTAL INVOICES / ENTRIES · '+esc(currency)+'</td><td class="num">'+number(systemTotal)+
+      '</td></tr></tfoot></table></div><div><table><thead><tr><th>Date</th><th>Bank</th><th>Statement reference / Description</th><th class="num">Credit</th><th class="num">Debit</th></tr></thead><tbody>'+
+      (bankList||'<tr><td colspan="5">Bank statement details unavailable</td></tr>')+
+      '</tbody><tfoot><tr class="total"><td colspan="3">TOTAL BANK STATEMENT · '+esc(currency)+'</td><td class="num">'+number(credit)+'</td><td class="num">'+number(debit)+
+      '</td></tr></tfoot></table></div></div></section>';
+  }).join('');
   const category=document.getElementById('expenseFilterCategory')?.value||'All categories';
-  const sum=t=>{const a={};rows.forEach(x=>{const c=x.currency||'EGP',am=+x.amount||0,p=+x.paid||0,n=t==='total'?am:t==='paid'?p:Math.max(0,am-p);a[c]=(a[c]||0)+n});return Object.entries(a).map(([c,n])=>`${c} ${n.toFixed(2)}`).join(' | ')||'—'};
-  w.document.write(`<!doctype html><html><head><title>Expenses Report</title><style>
-  @page{size:A4 landscape;margin:8mm}
-  *{box-sizing:border-box}
-  body{font:9px/1.25 Arial,sans-serif;margin:0;color:#17313b;print-color-adjust:exact}
-  h1{font-size:18px;margin:0 0 4px}
-  .category-filter{margin:0 0 6px;color:#425d69}
-  .summary{display:flex;gap:5px;margin:0 0 7px}
-  .box{border:1px solid #ccd9d6;background:#f3f8f6;padding:4px 6px;flex:1;break-inside:avoid}
-  .box b{font-size:10px}
-  table{width:100%;table-layout:fixed;border-collapse:collapse}
-  th,td{border-bottom:1px solid #d6e0dd;padding:2px 2px;vertical-align:top;overflow-wrap:anywhere}
-  th{background:#dceae5;text-align:left}
-  thead{display:table-header-group}
-  tbody tr:nth-child(even){background:#f4f8f7}
-  tr{break-inside:avoid}
-  .reconciled-payment+.reconciled-payment{border-top:1px solid #ccd9d6;margin-top:3px;padding-top:3px}
-  .financial-column{white-space:nowrap}
-  .amount-column{text-align:right;font-variant-numeric:tabular-nums}
-  .expense-category{color:#173d35;font-weight:600}
-  .expense-status{font-weight:700;color:#176b56}
-  .expense-status.payable{color:#8b4d07}
-  </style></head><body><h1>Expenses / Financial Cash Control</h1><p class="category-filter"><b>Category:</b> ${esc(category)}</p><div class="summary"><div class="box"><b>Total Expenses</b><br>${sum('total')}</div><div class="box"><b>Paid</b><br>${sum('paid')}</div><div class="box"><b>Payable</b><br>${sum('payable')}</div></div><table><colgroup>
-  <col style="width:5%"><col style="width:5%"><col style="width:8%"><col style="width:12%">
-  <col style="width:7%"><col style="width:4%"><col style="width:4%"><col style="width:7%">
-  <col style="width:5%"><col style="width:6%"><col style="width:6%"><col style="width:6%"><col style="width:4%"><col style="width:21%">
-  </colgroup><thead><tr><th>Date</th><th>Shipment</th><th scope="col" class="expense-category">Category</th><th>Description</th><th>Supplier</th><th>Invoice / NF</th><th>Invoice File</th><th>Bank Payment</th><th class="financial-column">Currency</th><th class="financial-column amount-column">Amount</th><th class="financial-column amount-column">Paid</th><th class="financial-column amount-column">Balance</th><th class="financial-column">Status</th><th>Reconciled payment · Bank statement</th></tr></thead><tbody>${rows.map(x=>{const b=Math.max(0,(+x.amount||0)-(+x.paid||0));return `<tr><td>${esc(x.date||'')}</td><td>${esc(x.shipment||'—')}</td><td class="expense-category">${esc(x.category||"—")}</td><td>${esc(x.description||'')}</td><td>${esc(x.supplier||'—')}</td><td>${esc(x.invoice_number||'—')}</td><td>${esc(x.invoice_file||'—')}</td><td>${esc(x.bank_payment||'—')}</td><td class="financial-column">${esc(x.currency||'EGP')}</td><td class="financial-column amount-column">${(+x.amount||0).toFixed(2)}</td><td class="financial-column amount-column">${(+x.paid||0).toFixed(2)}</td><td class="financial-column amount-column">${b.toFixed(2)}</td><td class="financial-column expense-status${b>0?' payable':''}">${b>0?'Payable':'Paid'}</td><td>${detailsByExpense.get(String(x.id))||'Not reconciled'}</td></tr>`}).join('')}</tbody></table><script>window.onload=()=>window.print()<\/script>
-
-
-</body></html>`);w.document.close();
+  w.document.open();
+  w.document.write('<!doctype html><html><head><title>Expenses & Reconciliation Report</title><style>'+
+    '@page{size:A4 landscape;margin:8mm}*{box-sizing:border-box}body{font:9px/1.3 Arial,sans-serif;color:#17313b;margin:0;print-color-adjust:exact}'+
+    'h1{font-size:17px;margin:0 0 4px}h2{font-size:12px;margin:12px 0 5px}h3{font-size:10px;background:#dceae5;margin:0;padding:5px}'+
+    'p{margin:3px 0 7px}table{width:100%;border-collapse:collapse}th,td{padding:3px 4px;border-bottom:1px solid #d6e0dd;text-align:left;vertical-align:top;overflow-wrap:anywhere}'+
+    'th{background:#edf3f1}thead{display:table-header-group}tr{break-inside:avoid}tbody tr:nth-child(even){background:#f7f9f8}.num{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}'+
+    '.total{font-weight:bold;background:#dceae5}.muted{color:#607780}.columns{display:grid;grid-template-columns:42% 58%;gap:0}.columns>div{min-width:0}.columns>div:first-child{padding-right:8px}'+
+    '.reconciliation{margin:0 0 10px;break-inside:avoid}h2,h3{break-after:avoid}</style></head><body>'+
+    '<h1>AUREA EGYPT · Expenses & Bank Reconciliation</h1><p>Category: '+esc(category)+' · '+rows.length+' invoices / expenses · Current filters</p>'+
+    '<h2>1. All invoices / expenses</h2><table><thead><tr><th>Date</th><th>Shipment</th><th>Invoice / NF</th><th>Supplier</th><th>Category</th><th style="width:22%">Description</th><th>Currency</th><th class="num">Amount</th><th class="num">Paid</th><th class="num">Balance</th><th>Reconciliation</th></tr></thead><tbody>'+
+    invoiceRows+totalRows+'</tbody></table><h2>2. Bank reconciliation listing</h2><p class="muted">Each reconciliation is listed once with all linked invoices / entries and bank statement payments. Entries outside the filter are excluded from section 1 totals.</p>'+
+    (reconciliationRows||'<p>No reconciliations linked to these invoices.</p>')+
+    '<script>window.onload=()=>window.print()<\/script></body></html>');
+  w.document.close();
  });
  render();
 })();
